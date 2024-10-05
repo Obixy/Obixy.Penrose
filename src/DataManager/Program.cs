@@ -1,13 +1,36 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos;
+using DataManager.Repositories;
+using DataManager;
+using Microsoft.OpenApi.Writers;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<JobsManager>();
+
+builder.Services.AddSingleton(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("Penrose");
+
+    return new CosmosClient(connectionString, new CosmosClientOptions
+    {
+        Serializer = new NewtonsoftJsonCosmosSerializer(NewtonsoftJsonCosmosSerializer.serializerSettings)
+    });
+});
+
+builder.Services.AddHttpClient<GaiaRepository>((sp, options) =>
+{
+    options.BaseAddress = new("http://gea.esac.esa.int/"); // TODO: Configure enviroment variable
+});
+
+builder.Services.AddHostedService<JobBackgroudService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -16,29 +39,38 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapGet("jobs/status/{sourceId}", async (
+    [FromRoute] string sourceId,
+    [FromServices] GaiaRepository gaiaRepository,
+    CancellationToken cancellationToken = default
+) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var gaiaJob = await gaiaRepository.GetJob(sourceId, cancellationToken);
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    if (gaiaJob is null)
+    {
+        await gaiaRepository.StartGaiaQueryAsync(sourceId, cancellationToken);
+
+        return Results.Ok(GaiaJob.StatusTypes.RUNNING.ToString());
+    }
+
+    var status = await gaiaRepository.CheckJobStatus(gaiaJob.JobUrl, cancellationToken);
+
+    return Results.Ok(status.ToString());
 })
-.WithName("GetWeatherForecast")
+.WithName("Jobs")
 .WithOpenApi();
 
-app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+using (var scope = app.Services.CreateScope())
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    var gaiaRepository = scope.ServiceProvider.GetRequiredService<GaiaRepository>();
+    var jobsManager = scope.ServiceProvider.GetRequiredService<JobsManager>();
+
+    var runningJobs = await gaiaRepository.GetJobs(new([GaiaJob.StatusTypes.RUNNING]));
+
+    foreach (var jobInProgress in runningJobs)
+        jobsManager.Add(jobInProgress.SourceId, jobInProgress.JobUrl);
 }
+
+app.Run();
