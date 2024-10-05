@@ -1,0 +1,6 @@
+@DataManager_HostAddress = http://localhost:5055
+
+GET {{DataManager_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
