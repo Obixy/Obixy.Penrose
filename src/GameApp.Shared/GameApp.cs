@@ -59,6 +59,8 @@ public class GameApp : Game
             throw new ArgumentNullException(nameof(threeDDebugGrid));
 
         threeDDebugGrid.LoadContent(GraphicsDevice, starCamera);
+
+        _ = Content.Load<Effect>("NewEffect");
     }
 
     /// <summary>
@@ -97,7 +99,7 @@ public class GameApp : Game
         if (threeDDebugGrid is null)
             throw new ArgumentNullException(nameof(threeDDebugGrid));
 
-        threeDDebugGrid.Update(starCamera);
+        threeDDebugGrid.Update(starCamera, gameTime);
 
         base.Update(gameTime);
     }
@@ -114,7 +116,6 @@ public class GameApp : Game
             throw new ArgumentNullException(nameof(threeDDebugGrid));
 
         threeDDebugGrid.Draw(GraphicsDevice);
-
 
         if (spriteBatch is null)
             throw new ArgumentNullException(nameof(spriteBatch));

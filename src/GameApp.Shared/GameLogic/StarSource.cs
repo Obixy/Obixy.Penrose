@@ -5,115 +5,117 @@ using System.Collections.Generic;
 
 namespace GameApp.Shared.GameLogic;
 
-public class Star
-{
-    public Star(
-        string SourceId,
-        Vector3 ThreeDPosition,
-        Vector3 Color, // Actual RGB color, still needs to be converted to color mask
-        float AbsoluteMagnitude // Im still not sure if this is Absolute or relative but ok
-    )
-    {
-        this.SourceId = SourceId;
-        this.ThreeDPosition = ThreeDPosition;
-        this.Color = Color;
-        this.AbsoluteMagnitude = AbsoluteMagnitude;
-    }
-
-    public string SourceId { get; }
-    public Vector3 ThreeDPosition { get; }
-    public Vector3 Color { get; }
-    public Color ColorMask => new Color(
-        Color.X / 255f,
-        Color.Y / 255f,
-        Color.Z / 255f,
-        1f
-    );
-
-    public float AbsoluteMagnitude { get; }
-    public Texture2D? Texture { get; set; }
-
-    public void Draw(SpriteBatch spriteBatch, Vector2 screenPosition, float size)
-    {
-        if (Texture is null)
-            throw new ArgumentNullException(nameof(Texture));
-
-        spriteBatch.Draw(
-            Texture,
-            screenPosition,
-            null,
-            ColorMask,
-            0f,
-            new Vector2(8 / 2, 8 / 2),//new Vector2(Texture.Width / 2, Texture.Height / 2),
-            size / 8,//size / Texture.Width,
-            SpriteEffects.None,
-            0f
-        );
-    }
-}
-
 // Load stars from database
 public class StarSource
 {
     private List<Star> stars;
     // Quantized magnitude -> Star texture
-    private Dictionary<float, Texture2D> _textureCache;
+    private Dictionary<double, Texture2D> _textureCache;
 
     public StarSource()
     {
+ 
+
         stars = [
-           new Star("418551920284673408",
-                new Vector3(7.648648470719667f, 1.3661841513924735f, 11.755311234543765f),
-                new Vector3(255f, 216f, 184f),
-                3.7021639489054473f),
-            new Star("4357027756659697664",
-                new Vector3(-9.06110402874351f, -18.242450569113956f, -1.315398860223795f),
-                new Vector3(255f, 198f, 152f),
-                3.380211241711606f),
-            new Star("5589311357728452608",
-                new Vector3(-1.5179151295580655f, 4.33798136937098f, -3.475517460606429f),
-                new Vector3(255f, 199f, 153f),
-                4.478849326165926f),
-            new Star("4993479684438433792",
-                new Vector3(29.32712033687681f, 3.3788212655240293f, -26.869517200852084f),
-                new Vector3(255f, 210f, 174f),
-                2.7975994179830387f),
-            new Star("4038055447778237312",
-                new Vector3(1.470087330052893f, -19.078976588391928f, -14.29564479904072f),
-                new Vector3(255f, 188f, 133f),
-                3.243671468248319f),
-            new Star("1279798794197267072",
-                new Vector3(-9.256776047172817f, -8.116970462065536f, 6.293151964351856f),
-                new Vector3(255f, 214f, 181f),
-                3.718620468821298f),
-            new Star("160886283751041408",
-                new Vector3(1.6472904190515996f, 5.840241416856564f, 3.9657227230770116f),
-                new Vector3(255f, 203f, 160f),
-                4.279443911906433f),
-            new Star("4302054339959905920",
-                new Vector3(2.4571200371711006f, -4.914254111997705f, 1.0295457103923173f),
-                new Vector3(255f, 201f, 158f),
-                4.505171182897414f),
-            new Star("1222646935698492160",
-                new Vector3(-22.352401792151028f, -30.398565763496322f, 18.98900812563558f),
-                new Vector3(255f, 250f, 244f),
-                2.7485426387250787f),
-            new Star("5111187420714898304",
-                new Vector3(8.38834265485218f, 14.244924283509336f, -3.9715518490902237f),
-                new Vector3(255f, 193f, 142f),
-                3.5390518907565762f),
-            new Star("2947050466531873024", // SIRIUS
-                new Vector3(-70.19502737134754f, 351.7189554192832f, -107.74455984080053f),
-                new Vector3(179f, 204f, 255f),
-                -1.46f),
-            new Star("3322763588417036032", // BETELGEUSE
-                new Vector3(0.01f, 0.5f, -0.06f),
-                new Vector3(255f, 216f, 185f),
-                .5f
+            new Star(
+                SourceId: 160886283751041408   ,
+                RightAscension: 74.24843702624405f  ,
+                Declination: 33.16601472318802f,
+                Parallax: 7.249065034494049f,
+                BPRP: 1.4451852f,
+                GMag: 2.1975422f
             ),
+            new Star(
+                SourceId: 418551920284673408   ,
+                RightAscension: 10.12724197930297f     ,
+                Declination: 56.53718879378639f,
+                Parallax: 14.090976249252234f,
+                BPRP: 1.1434835f,
+                GMag: 1.9425238f
+            ),
+            new Star(
+                SourceId: 1222646935698492160  ,
+                RightAscension: 233.67254376294218f    ,
+                Declination: 26.714295174747274f,
+                Parallax: 42.24080076261629f,
+                BPRP: 0.529583f,
+                GMag: 2.2693703f
+            ),
+            new Star(
+                SourceId: 1279798794197267072  ,
+                RightAscension: 221.24648617076684f    ,
+                Declination: 27.074315757773466f,
+                Parallax: 13.82667260913517f,
+                BPRP: 1.1840065f,
+                GMag: 2.1833525f
+            ),
+            new Star(
+                SourceId: 2947050466531873024  , // SIRIUS
+                RightAscension: 101.28662552099249f    ,
+                Declination: -16.720932526023173f,
+                Parallax: 374.48958852876103f,
+                BPRP: -0.27842712f,
+                GMag: 8.524133f
+            ),
+            new Star(
+                SourceId: 3322763588417036032  , // BETELGEUSE
+                RightAscension: 88.8572254952028f      ,
+                Declination: 7.227819034090208f,
+                Parallax: 0.5363052504330691f,
+                BPRP: 1.1323872f,
+                GMag: 13.313011f
+            ),
+            new Star(
+                SourceId: 4038055447778237312  ,
+                RightAscension: 274.4060904518451f     ,
+                Declination: -36.76242931758906f,
+                Parallax: 23.885852068095137f,
+                BPRP: 1.8272674f,
+                GMag: 2.1164951f
+            ),
+            new Star(
+                SourceId: 4302054339959905920  ,
+                RightAscension: 296.56498571046956f    ,
+                Declination: 10.613252703828636f,
+                Parallax: 5.589928355256642f,
+                BPRP: 1.4782449f,
+                GMag: 2.223692f
+            ),
+            new Star(
+                SourceId: 4357027756659697664  ,
+                RightAscension: 243.58621066034064f    ,
+                Declination: -3.694967708333353f,
+                Parallax: 20.411292350652413f,
+                BPRP: 1.5633104f,
+                GMag: 2.0164251f
+            ),
+            new Star(
+                SourceId: 4993479684438433792  ,
+                RightAscension: 6.57215550145885f      ,
+                Declination: -42.30782032569077f,
+                Parallax: 39.91825815729799f,
+                BPRP: 1.2694821f,
+                GMag: 2.0899775f
+            ),
+            new Star(
+                SourceId: 5111187420714898304  ,
+                RightAscension: 59.507642022011794f    ,
+                Declination: -13.509012610930261f,
+                Parallax: 17.00162879163835f,
+                BPRP: 1.689486f,
+                GMag: 2.2707934f
+            ),
+            new Star(
+                SourceId: 5589311357728452608  ,
+                RightAscension: 109.28559423278779f    ,
+                Declination: -37.097444485279574f,
+                Parallax: 5.762063161817684f,
+                BPRP: 1.5425804f,
+                GMag: 2.0832374f
+            )
         ];
 
-        _textureCache = new Dictionary<float, Texture2D>();
+        _textureCache = new Dictionary<double, Texture2D>();
     }
 
     private const int TextureSize = 64;
@@ -121,7 +123,7 @@ public class StarSource
     {
         foreach (var star in stars)
         {
-            float quantizedMagnitude = QuantizeMagnitude(star.AbsoluteMagnitude);
+            var quantizedMagnitude = QuantizeMagnitude(star.AbsoluteMagnitude);
 
             if (!_textureCache.TryGetValue(quantizedMagnitude, out Texture2D? texture))
             {
@@ -133,7 +135,7 @@ public class StarSource
         }
     }
 
-    public static Texture2D CreateStarTexture(GraphicsDevice graphicsDevice, int size, Color color, float magnitude)
+    public static Texture2D CreateStarTexture(GraphicsDevice graphicsDevice, int size, Color color, double magnitude)
     {
         Texture2D texture = new Texture2D(graphicsDevice, size, size);
         Color[] colorData = new Color[size * size];
@@ -143,8 +145,8 @@ public class StarSource
         float centerY = radius;
 
         // Adjust brightness based on magnitude (lower magnitude = brighter star)
-        float brightness = Math.Max(0, 1 - (magnitude / 6f)); // Assuming magnitude range of 0-6
-        color = Color.Lerp(Color.Black, color, brightness);
+        var brightness = Math.Max(0, 1 - (magnitude / 6d)); // Assuming magnitude range of 0-6
+        color = Color.Lerp(Color.Black, color, (float)brightness);
 
         for (int x = 0; x < size; x++)
         {
@@ -173,9 +175,9 @@ public class StarSource
         return stars;
     }
 
-    private const float MagnitudeStep = 0.25f;
-    private static float QuantizeMagnitude(float magnitude)
+    private const double MagnitudeStep = 0.25f;
+    private static double QuantizeMagnitude(double magnitude)
     {
-        return (float)Math.Round(magnitude / MagnitudeStep) * MagnitudeStep;
+        return Math.Round(magnitude / MagnitudeStep) * MagnitudeStep;
     }
 }
