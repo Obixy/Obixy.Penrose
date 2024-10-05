@@ -1,10 +1,14 @@
+import { Manual } from "./manual";
+
 export function Sidebar() {
   return (
     <div className="w-[450px] h-[96vh] absolute inset-0 my-auto ml-4 flex grow overflow-hidden rounded-[2rem] border-y border-b-white/10 border-t-white/15 bg-black/15 shadow-xl shadow-black/30 backdrop-blur-2xl">
       <div className="flex grow flex-col gap-5 overflow-y-auto">
         <div className="p-5 flex grow flex-col gap-5">
-          <header className="mb-4">
+          <header className="mb-4 flex items-center justify-between">
             <h1 className="text-2xl text-gray-400">Penrose</h1>
+
+            <Manual />
           </header>
 
           <div className="flex gap-2">
@@ -28,7 +32,7 @@ export function Sidebar() {
           </div>
         </div>
 
-        <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pr-2.5 relative">
+        <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pb-24 pr-2.5 relative">
           <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
             <img
               src="./public/planet.png"

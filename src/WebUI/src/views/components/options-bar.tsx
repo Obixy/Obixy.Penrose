@@ -7,9 +7,9 @@ import {
 } from "@/views/components/ui/dropdown-menu";
 
 enum Units {
-  "Anos luz" = 1,
+  "Light-Years" = 1,
   "Parsec" = 2,
-  "Quilômetro" = 3,
+  "Kilometer" = 3,
 }
 
 interface OptionsBarProps {
@@ -36,7 +36,7 @@ export function OptionsBar({ onUnitChange }: OptionsBarProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger className="group h-fit flex items-center gap-2 rounded-full px-4 py-2 transition hover:bg-white/5">
-          Unidade de medida
+          Unit of measure
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
