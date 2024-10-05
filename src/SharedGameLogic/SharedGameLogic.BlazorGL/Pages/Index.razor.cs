@@ -2,7 +2,7 @@ using Microsoft.JSInterop;
 using Microsoft.Xna.Framework;
 using System;
 
-namespace WebApp.Pages
+namespace SharedGameLogic.Pages
 {
     public partial class Index
     {
@@ -24,7 +24,7 @@ namespace WebApp.Pages
             // init game
             if (_game == null)
             {
-                _game = new GameApp.Shared.GameApp();
+                _game = new SharedGameLogicGame();
                 _game.Run();
             }
 

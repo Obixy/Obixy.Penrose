@@ -7,6 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp", "src\WebApp\WebApp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataManager", "src\DataManager\DataManager.csproj", "{B449B5A0-0099-4CFB-94E3-F319E33010FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugApp", "src\DebugApp\DebugApp.csproj", "{963A6C31-39D4-49E0-BE08-8132173E60B0}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "GameApp.Shared", "src\GameApp.Shared\GameApp.Shared.shproj", "{FC099783-3947-490B-B56A-54BCABED73AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameApp.Shared.Content", "src\GameApp.Shared.Content\GameApp.Shared.Content.csproj", "{EBDBC3D2-D5E1-4A92-A9AA-EA3F24797972}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,11 +27,24 @@ Global
 		{B449B5A0-0099-4CFB-94E3-F319E33010FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B449B5A0-0099-4CFB-94E3-F319E33010FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B449B5A0-0099-4CFB-94E3-F319E33010FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{963A6C31-39D4-49E0-BE08-8132173E60B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{963A6C31-39D4-49E0-BE08-8132173E60B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{963A6C31-39D4-49E0-BE08-8132173E60B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{963A6C31-39D4-49E0-BE08-8132173E60B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBDBC3D2-D5E1-4A92-A9AA-EA3F24797972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBDBC3D2-D5E1-4A92-A9AA-EA3F24797972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBDBC3D2-D5E1-4A92-A9AA-EA3F24797972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBDBC3D2-D5E1-4A92-A9AA-EA3F24797972}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C3E84350-BE88-443D-B460-CB8A4F02E0BF}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\GameApp.Shared\SharedGameLogic.Shared.projitems*{963a6c31-39d4-49e0-be08-8132173e60b0}*SharedItemsImports = 5
+		src\GameApp.Shared\SharedGameLogic.Shared.projitems*{bae430b0-376d-4e3b-86b1-b51b04f8ad11}*SharedItemsImports = 5
+		src\GameApp.Shared\SharedGameLogic.Shared.projitems*{fc099783-3947-490b-b56a-54bcabed73af}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
