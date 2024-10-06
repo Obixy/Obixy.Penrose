@@ -104,7 +104,7 @@ ORDER BY adjusted_mag ASC";
             .Select(dataValue => new GaiaSource
             {
                 Id = Guid.NewGuid(),
-                JobId = job.Id!.Value,
+                JobId = job.Id,
                 StarData = keys.ToDictionary(
                     key => key,
                     key => dataValue[keys.IndexOf(key)]?.Value<string>() ?? string.Empty

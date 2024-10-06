@@ -3,6 +3,7 @@ using Microsoft.Azure.Cosmos;
 using DataManager.Repositories;
 using DataManager;
 using DataManager.Domain;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,7 @@ builder.Services.AddHttpClient<GaiaTapRepository>((sp, options) =>
 {
     options.BaseAddress = new("https://gea.esac.esa.int/"); // TODO: Configure enviroment variable
 });
+
 builder.Services.AddSingleton<PenroseRepository>();
 
 builder.Services.AddHostedService<JobBackgroudService>();
@@ -40,7 +42,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 app.MapPost("jobs", async (
     [FromBody] JobPostRequest request,
     [FromServices] GaiaTapRepository gaiaRepository,
@@ -52,7 +53,7 @@ app.MapPost("jobs", async (
 
     if (job is not null)
         return Results.Json(
-            new { Message = "Job already exist" }, 
+            new ErrorResponse("Job already exist"), 
             statusCode: StatusCodes.Status403Forbidden
         );
 
@@ -70,7 +71,10 @@ app.MapPost("jobs", async (
     await penroseRepository.Store(gaiaJob, cancellationToken);
 
     return Results.Created();
-});
+})
+.WithTags("Jobs")
+.Produces<ErrorResponse>(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status201Created);
 
 app.MapGet("jobs/{sourceId}/status", async (
     [FromRoute] string sourceId,
@@ -83,14 +87,15 @@ app.MapGet("jobs/{sourceId}/status", async (
     var gaiaJob = await penroseRepository.GetJob(sourceId, cancellationToken);
 
     if (gaiaJob is null)
-        return Results.NotFound("Job doesn't exist");
+        return Results.NotFound(new ErrorResponse("Job doesn't exist"));
 
     var status = await gaiaRepository.CheckJobStatus(gaiaJob.JobUrl, cancellationToken);
 
-    return Results.Ok(new { Status = status.ToString() });
+    return Results.Ok(new JobStatusResponse(status.ToString()));
 })
-.WithName("Jobs")
-.WithOpenApi();
+.WithTags("Jobs")
+.Produces<ErrorResponse>(StatusCodes.Status404NotFound)
+.Produces<JobStatusResponse>();
 
 app.MapGet("exoplanets", async (
     [FromServices] PenroseRepository penroseRepository,
@@ -99,17 +104,37 @@ app.MapGet("exoplanets", async (
 {
     var gaiaJobs = await penroseRepository.GetJobs(cancellationToken: cancellationToken);
 
-    var response = gaiaJobs.Select(gaiaJob => new
-    {
+    var response = gaiaJobs.Select(gaiaJob => new ExoplanetGetResponse(
+        gaiaJob.Id,
         gaiaJob.Name,
-        gaiaJob.Parallax,
-        gaiaJob.SourceId
-    });
+        gaiaJob.Parallax
+    ));
 
     return Results.Ok(response);
 })
-.WithName("Exoplanets")
-.WithOpenApi();
+.WithTags("Exoplanets")
+.WithOpenApi()
+.Produces<ExoplanetGetResponse>();
+
+app.MapGet("exoplanets/{id}/stars", async (
+    [FromRoute] Guid id,
+    [FromServices] PenroseRepository penroseRepository,
+    HttpResponse httpResponse,
+    CancellationToken cancellationToken
+) =>
+{
+    httpResponse.ContentType = "text/event-stream";
+    
+    await foreach (var exoplanetStars in penroseRepository.GetExplanetStars(id, cancellationToken))
+    {
+        var json = JsonSerializer.Serialize(exoplanetStars.Select(exoplanetStar => exoplanetStar.StarData));
+        await httpResponse.WriteAsync($"data: {json}\n\n", cancellationToken: cancellationToken);
+        await httpResponse.Body.FlushAsync(cancellationToken);
+    }
+})
+.WithTags("Exoplanets")
+.WithOpenApi()
+.Produces<IEnumerable<IDictionary<string, string>>>();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -125,3 +150,6 @@ using (var scope = app.Services.CreateScope())
 app.Run();
 
 public record JobPostRequest(string SourceId, string ExoplanetName);
+public record JobStatusResponse(string Status);
+public record ExoplanetGetResponse(Guid Id, string Name, float Parallax);
+public record ErrorResponse(string Message);
