@@ -21,7 +21,6 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
 
   const [search, setSearch] = useState("");
   const [isVisible, setIsVisible] = useState(true);
-  const [, setMessage] = useState("");
 
   const filteredExoplanets = data?.filter((exoplanet) =>
     exoplanet.name.toLowerCase().includes(search.toLowerCase())
@@ -43,11 +42,14 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
 
   useEffect(() => {
     function handleMessage(e: any) {
-      if (e.origin !== "https://seu-dominio-do-iframe.com") {
+      if (
+        e.origin !==
+        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
+      ) {
         return;
       }
 
-      setMessage(e.data);
+      console.log(e.data);
     }
 
     window.addEventListener("message", handleMessage);
