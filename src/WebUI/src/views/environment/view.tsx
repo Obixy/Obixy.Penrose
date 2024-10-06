@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { useJobContext } from "@/lib/change-job-id";
 import { OptionsBar, Sidebar } from "../components";
 import { Manual } from "../components/manual";
+import { MessageDisplay } from "../components/message-display";
 
 export function View() {
   const { exoplanet } = useJobContext();
@@ -81,6 +82,8 @@ export function View() {
       ></iframe>
 
       <OptionsBar />
+
+      <MessageDisplay />
 
       <Manual isOpen={open} setIsOpen={setOpen} />
     </div>
