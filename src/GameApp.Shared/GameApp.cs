@@ -20,6 +20,7 @@ public class GameApp : Game
     StarSource? starSource;
     ClickDetectionGrid? clickDetectionGrid;
     SpriteFont? defaultSpriteFont;
+    ConstelationManager? constelationManager;
 
     public GameApp()
     {
@@ -44,7 +45,6 @@ public class GameApp : Game
     {
         starCamera = new StarCamera(Vector3.Zero, Vector3.Forward, Vector3.Up);
         threeDDebugGrid = new ThreeDDebugGrid();
-
         starSource = new StarSource();
         clickDetectionGrid = new ClickDetectionGrid();
 
@@ -60,6 +60,8 @@ public class GameApp : Game
     {
         spriteBatch = new SpriteBatch(GraphicsDevice);
 
+        constelationManager = new ConstelationManager(GraphicsDevice);
+
         if (starSource is null)
             throw new ArgumentNullException(nameof(starSource));
 
@@ -68,6 +70,7 @@ public class GameApp : Game
 
         if (threeDDebugGrid is null)
             throw new ArgumentNullException(nameof(threeDDebugGrid));
+
 
         threeDDebugGrid.LoadContent(GraphicsDevice, starCamera);
 
@@ -109,7 +112,7 @@ public class GameApp : Game
         if (clickDetectionGrid is null)
             throw new ArgumentNullException(nameof(clickDetectionGrid));
 
-        clickDetectionGrid.Update(currentMouseState, previousMouseState);
+        clickDetectionGrid.Update(currentMouseState, previousMouseState, constelationManager);
 
         starSource?.Update(GraphicsDevice, _jobId);
 
@@ -117,6 +120,8 @@ public class GameApp : Game
             throw new ArgumentNullException(nameof(starCamera));
 
         starCamera.Update(Keyboard.GetState(), gameTime);
+
+        constelationManager!.Update(GraphicsDevice, starCamera, keyboardState);
 
         if (threeDDebugGrid is null)
             throw new ArgumentNullException(nameof(threeDDebugGrid));
@@ -162,6 +167,8 @@ public class GameApp : Game
             throw new ArgumentNullException(nameof(clickDetectionGrid));
 
         starCamera.Draw(GraphicsDevice, defaultSpriteFont, spriteBatch, starSource, clickDetectionGrid);
+
+        constelationManager!.Draw(GraphicsDevice);
 
         spriteBatch.End();
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace GameApp.Shared.GameLogic;
 
@@ -50,8 +49,10 @@ public class Star
 
     private Vector3? _oringinalColor;
 
-    public void OnClick()
+    public void OnClick(ConstelationManager constelationManager)
     {
+        constelationManager.AddStar(this);
+
         if (_oringinalColor == null)
         {
             _oringinalColor = Color;

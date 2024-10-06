@@ -26,7 +26,7 @@ public class StarSource
     // Quantized magnitude -> Star texture
     private Dictionary<double, Texture2D> _textureCache = new Dictionary<double, Texture2D>();
     private readonly HttpClient httpClient = new();
-    const string url = "https://nsac-obixy-penrose-data-auefcgedgjhyanbw.canadacentral-01.azurewebsites.net/exoplanets/{0}/stars";
+    const string url = "https://nsac-obixy-penrose-data-auefcgedgjhyanbw.brazilsouth-01.azurewebsites.net/exoplanets/{0}/stars";
     private bool HasBegunLoading = false;
     public bool IsLoading = false;
     public bool HasLoadedTextures = false;
@@ -85,7 +85,7 @@ public class StarSource
     public static Texture2D CreateStarTexture(GraphicsDevice graphicsDevice, int textureSize, Color color, double magnitude)
     {
         // Calculate the scaled texture size based on magnitude
-        var scaledSize = (int)/*CalculateScaledSize(magnitude) **/ textureSize;
+        var scaledSize = (int)Math.Max(CalculateScaledSize(magnitude), 1d) * textureSize;
 
         // Create a new texture with the scaled size
         Texture2D texture = new Texture2D(graphicsDevice, scaledSize, scaledSize);
@@ -139,7 +139,7 @@ public class StarSource
 
     public void Update(GraphicsDevice graphicsDevice, Guid? jobId)
     {
-        EnsureStartsQueryTask(jobId ??= Guid.Parse("88c334d4-baba-4273-8ed0-efef4b78d03d"));
+        EnsureStartsQueryTask(jobId ??= Guid.Parse("977e99b4-5f98-4f5b-a2d9-721f5c618eb6"));
 
         if (!IsLoading && stars.Any())
         {
