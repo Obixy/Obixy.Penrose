@@ -10,8 +10,6 @@ export function View() {
 
   const [open, setOpen] = useState(false);
 
-  const jobId = exoplanet?.id;
-
   function handleFocus() {
     iframeRef.current?.focus();
   }
@@ -56,12 +54,12 @@ export function View() {
     if (iframe) {
       iframe.contentWindow?.postMessage(
         {
-          jobId: jobId,
+          jobId: exoplanet?.id,
         },
         "*"
       );
     }
-  }, [jobId]);
+  }, [exoplanet?.id]);
 
   useEffect(() => {
     handleFocus();
