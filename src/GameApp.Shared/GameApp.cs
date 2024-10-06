@@ -19,6 +19,7 @@ public class GameApp : Game
     ThreeDDebugGrid? threeDDebugGrid;
     StarSource? starSource;
     ClickDetectionGrid? clickDetectionGrid;
+    SpriteFont? defaultSpriteFont;
 
     public GameApp()
     {
@@ -26,8 +27,11 @@ public class GameApp : Game
         Content.RootDirectory = "Content";
     }
 
+    private Guid _jobId;
     public void UpdateWebInput(IDictionary<string, object> input)
     {
+        if (input.TryGetValue("jobId", out var jobId))
+            _jobId = Guid.Parse(jobId.ToString()!);
     }
 
     /// <summary>
@@ -40,6 +44,7 @@ public class GameApp : Game
     {
         starCamera = new StarCamera(Vector3.Zero, Vector3.Forward, Vector3.Up);
         threeDDebugGrid = new ThreeDDebugGrid();
+
         starSource = new StarSource();
         clickDetectionGrid = new ClickDetectionGrid();
 
@@ -58,15 +63,15 @@ public class GameApp : Game
         if (starSource is null)
             throw new ArgumentNullException(nameof(starSource));
 
-        starSource.LoadContent(GraphicsDevice);
-
         if (starCamera is null)
             throw new ArgumentNullException(nameof(starCamera));
 
         if (threeDDebugGrid is null)
             throw new ArgumentNullException(nameof(threeDDebugGrid));
-         
+
         threeDDebugGrid.LoadContent(GraphicsDevice, starCamera);
+
+        defaultSpriteFont = Content.Load<SpriteFont>("defaultSpriteFont");
     }
 
     /// <summary>
@@ -106,6 +111,8 @@ public class GameApp : Game
 
         clickDetectionGrid.Update(currentMouseState, previousMouseState);
 
+        starSource?.Update(GraphicsDevice, _jobId);
+
         if (starCamera is null)
             throw new ArgumentNullException(nameof(starCamera));
 
@@ -142,13 +149,19 @@ public class GameApp : Game
 
         spriteBatch.Begin();
 
+        if (defaultSpriteFont is null)
+            throw new ArgumentNullException(nameof(defaultSpriteFont));
+
+        if (starCamera is null)
+            throw new ArgumentNullException(nameof(starCamera));
+
         if (starSource is null)
             throw new ArgumentNullException(nameof(starSource));
 
         if (clickDetectionGrid is null)
             throw new ArgumentNullException(nameof(clickDetectionGrid));
 
-        starCamera.Draw(GraphicsDevice, spriteBatch, starSource, clickDetectionGrid);
+        starCamera.Draw(GraphicsDevice, defaultSpriteFont, spriteBatch, starSource, clickDetectionGrid);
 
         spriteBatch.End();
 
