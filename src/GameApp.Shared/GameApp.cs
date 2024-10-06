@@ -60,7 +60,7 @@ public class GameApp : Game
 
         threeDDebugGrid.LoadContent(GraphicsDevice, starCamera);
 
-        _ = Content.Load<Effect>("NewEffect");
+        //_ = Content.Load<Effect>("NewEffect");
     }
 
     /// <summary>

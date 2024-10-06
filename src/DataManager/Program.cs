@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using DataManager.Repositories;
 using DataManager;
-using Microsoft.OpenApi.Writers;
+using DataManager.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,7 @@ builder.Services.AddSingleton<JobsManager>();
 builder.Services.AddSingleton(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
-    var connectionString = configuration.GetConnectionString("Penrose");
+    var connectionString = configuration["PenroseDbConnectionString"];
 
     return new CosmosClient(connectionString, new CosmosClientOptions
     {
@@ -24,7 +24,7 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddHttpClient<GaiaRepository>((sp, options) =>
 {
-    options.BaseAddress = new("http://gea.esac.esa.int/"); // TODO: Configure enviroment variable
+    options.BaseAddress = new("https://gea.esac.esa.int/"); // TODO: Configure enviroment variable
 });
 
 builder.Services.AddHostedService<JobBackgroudService>();
@@ -51,7 +51,7 @@ app.MapGet("jobs/status/{sourceId}", async (
     {
         await gaiaRepository.StartGaiaQueryAsync(sourceId, cancellationToken);
 
-        return Results.Ok(GaiaJob.StatusTypes.RUNNING.ToString());
+        return Results.Ok(GaiaExoplanetJob.StatusTypes.PENDING.ToString());
     }
 
     var status = await gaiaRepository.CheckJobStatus(gaiaJob.JobUrl, cancellationToken);
@@ -61,13 +61,12 @@ app.MapGet("jobs/status/{sourceId}", async (
 .WithName("Jobs")
 .WithOpenApi();
 
-
 using (var scope = app.Services.CreateScope())
 {
     var gaiaRepository = scope.ServiceProvider.GetRequiredService<GaiaRepository>();
     var jobsManager = scope.ServiceProvider.GetRequiredService<JobsManager>();
 
-    var runningJobs = await gaiaRepository.GetJobs(new([GaiaJob.StatusTypes.RUNNING]));
+    var runningJobs = await gaiaRepository.GetJobs(new([GaiaExoplanetJob.StatusTypes.PENDING]));
 
     foreach (var jobInProgress in runningJobs)
         jobsManager.Add(jobInProgress.SourceId, jobInProgress.JobUrl);

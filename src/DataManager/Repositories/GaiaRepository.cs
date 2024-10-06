@@ -1,123 +1,167 @@
-﻿using Microsoft.Azure.Cosmos;
+﻿using DataManager.Domain;
+using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Web;
 using System.Xml.Linq;
-using static DataManager.Repositories.GaiaJob;
 
 namespace DataManager.Repositories;
 
-public record GaiaJob(string SourceId, string JobUrl, StatusTypes Status)
-{
-    public StatusTypes Status { get; set; } = Status;
-    public enum StatusTypes
-    {
-        RUNNING,
-        ERROR,
-        COMPLETED
-    }
-}
-
 public class GaiaRepository
 {
+    // FULL QUERY
     const string queryBase = @"
-                                  WITH proxima_centauri AS (
-                                    SELECT source_id, ra, dec, parallax, phot_g_mean_mag
-                                    FROM gaiadr3.gaia_source
-                                    WHERE source_id = {0}
-                                  ),
-                                  stars_from_proxima AS (
-                                    SELECT 
-                                      s.source_id,
-                                      s.ra,
-                                      s.dec,
-                                      s.parallax,
-                                      s.phot_g_mean_mag,
-                                      p.parallax AS proxima_parallax,
-                                      ABS(1/s.parallax - 1/p.parallax) AS dist_from_proxima_pc,
-                                      s.phot_g_mean_mag + 5 * LOG10(ABS(1/s.parallax) / ABS(1/s.parallax - 1/p.parallax)) AS adjusted_mag
-                                    FROM gaiadr3.gaia_source s, proxima_centauri p
-                                    WHERE s.parallax > 0 
-                                      AND s.phot_g_mean_mag IS NOT NULL
-                                      AND s.source_id != p.source_id
-                                  )
-                                  SELECT TOP 10 *
-                                  FROM stars_from_proxima
-                                  WHERE adjusted_mag < 6.5  -- Limit to stars potentially visible to naked eye
-                                  ORDER BY adjusted_mag ASC
-                             ";
+WITH proxima_centauri AS (
+    SELECT source_id, ra, dec, parallax, phot_g_mean_mag
+    FROM gaiadr3.gaia_source
+    WHERE source_id = {0}
+)
+SELECT TOP 15000
+    s.source_id,
+    s.ra,
+    s.dec,
+    s.parallax,
+    s.phot_g_mean_mag,
+    p.parallax AS proxima_parallax,
+    ABS(1/s.parallax - 1/p.parallax) AS dist_from_proxima_pc,
+    s.phot_g_mean_mag + 5 * LOG10(ABS(1/s.parallax) / ABS(1/s.parallax - 1/p.parallax)) AS adjusted_mag
+FROM gaiadr3.gaia_source s, proxima_centauri p
+WHERE s.parallax > 0 
+    AND s.phot_g_mean_mag IS NOT NULL
+    AND s.source_id != p.source_id
+    AND s.phot_g_mean_mag + 5 * LOG10(ABS(1/s.parallax) / ABS(1/s.parallax - 1/p.parallax)) < 6.5
+ORDER BY adjusted_mag ASC";
+
+    // Test query
+    //    const string queryBase = @"
+    //WITH proxima_centauri AS (
+    //    SELECT source_id, ra, dec, parallax, phot_g_mean_mag
+    //    FROM gaiadr3.gaia_source
+    //    WHERE source_id = {0}
+    //)
+    //SELECT TOP 10
+    //    s.source_id,
+    //    s.ra,
+    //    s.dec,
+    //    s.parallax,
+    //    s.phot_g_mean_mag,
+    //    p.parallax AS proxima_parallax,
+    //    ABS(1/s.parallax - 1/p.parallax) AS dist_from_proxima_pc,
+    //    s.phot_g_mean_mag + 5 * LOG10(ABS(1/s.parallax) / ABS(1/s.parallax - 1/p.parallax)) AS adjusted_mag
+    //FROM gaiadr3.gaia_source s, proxima_centauri p
+    //WHERE s.parallax > 0 
+    //    AND s.phot_g_mean_mag IS NOT NULL
+    //    AND s.source_id != p.source_id
+    //    AND s.phot_g_mean_mag + 5 * LOG10(ABS(1/s.parallax) / ABS(1/s.parallax - 1/p.parallax)) < 6.5";
 
     private const string GAIA_TAP_URL = "tap-server/tap/async";
 
     private readonly HttpClient httpClient;
     private readonly CosmosClient cosmosClient;
     private Database? database;
-    private Container? container;
+    private Container? jobContainer;
+    private Container? sourceContainer;
     private readonly JobsManager jobsManager;
 
     public GaiaRepository(
         HttpClient httpClient,
         CosmosClient cosmosClient,
-        Database? database,
-        Container? container,
         JobsManager jobsManager
     )
     {
         this.httpClient = httpClient;
         this.cosmosClient = cosmosClient;
-        this.database = database;
-        this.container = container;
         this.jobsManager = jobsManager;
     }
 
-    private async Task<Container> GetContainer(CancellationToken cancellationToken = default)
+    private async Task<Container> GetJobContainer(CancellationToken cancellationToken = default)
     {
         database ??= (await cosmosClient.CreateDatabaseIfNotExistsAsync("PenroseDb", cancellationToken: cancellationToken)).Database;
-        return container ??= (await database.CreateContainerIfNotExistsAsync("PenroseDbContext", "/PartitionKey", throughput: 400, cancellationToken: cancellationToken)).Container;
+        return jobContainer ??= (await database.CreateContainerIfNotExistsAsync("JobContext", "/PartitionKey", throughput: 400, cancellationToken: cancellationToken)).Container;
     }
 
-    public async Task AddJobResult<T>(T result, CancellationToken cancellationToken = default)
+    private async Task<Container> GetSourceContainer(CancellationToken cancellationToken = default)
     {
-        var resultContainer = await GetContainer(cancellationToken);
+        database ??= (await cosmosClient.CreateDatabaseIfNotExistsAsync("PenroseDb", cancellationToken: cancellationToken)).Database;
+        return sourceContainer ??= (await database.CreateContainerIfNotExistsAsync("SourceContext", "/PartitionKey", throughput: 400, cancellationToken: cancellationToken)).Container;
+    }
 
-        await resultContainer.CreateItemAsync(
-            result,
-            new PartitionKey("nasaSpaceApps"),
-            cancellationToken: cancellationToken
-        );
+    private const int batchUnitSize = 100;
+    public async Task AddSourceBatch(IEnumerable<GaiaSource> gaiaSources, GaiaExoplanetJob exoplanetJob, CancellationToken cancellationToken = default)
+    {
+        int currentSkip = 0;
+        var count = gaiaSources.Count();
+
+        var sourceContainer = await GetSourceContainer(cancellationToken);
+        while (currentSkip < count)
+        { 
+            var batchUnit = gaiaSources.Skip(currentSkip).Take(batchUnitSize).ToArray();
+            var transaction = sourceContainer.CreateTransactionalBatch(new PartitionKey(exoplanetJob.PartitionKey));
+
+            foreach (var item in batchUnit)
+                transaction.CreateItem(item);
+
+            using var batchResponse = await transaction.ExecuteAsync(cancellationToken);
+
+            if (!batchResponse.IsSuccessStatusCode)
+            {
+                throw new Exception($"Batch failed with status code {batchResponse.StatusCode}");
+            }
+
+            currentSkip += batchUnitSize;
+        }
+
+        exoplanetJob.Status = GaiaExoplanetJob.StatusTypes.COMPLETED;
+
+        var container = await GetJobContainer(cancellationToken);
+        var updateResponse = await container.UpsertItemAsync(exoplanetJob, new PartitionKey(exoplanetJob.PartitionKey), cancellationToken: cancellationToken);
+
+        if (updateResponse.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            throw new Exception($"Update failed with status code {updateResponse.StatusCode}");
+        }
 
     }
 
     public async Task StartGaiaQueryAsync(string sourceId, CancellationToken cancellationToken = default)
     {
-        var query = string.Format(queryBase, sourceId);
-
-        var content = new FormUrlEncodedContent(
-        [
-            new("REQUEST", "doQuery"),
-            new("LANG", "ADQL"),
-            new("FORMAT", "json"),
-            new("QUERY", query)
-        ]);
-
-        var response = await httpClient.PostAsync(GAIA_TAP_URL, content, cancellationToken);
+        var unsafeQuery = string.Format(queryBase, sourceId);
+        var encodedQuery = HttpUtility.UrlEncode(unsafeQuery);
+        var response = await httpClient.PostAsync($"tap-server/tap/async?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY={encodedQuery}", null, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var jobsContainer = await GetContainer(cancellationToken);
+        var stringContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        var doc = XDocument.Parse(stringContent);
+        XNamespace ns = "http://www.ivoa.net/xml/UWS/v1.0";
+        var jobIdElement = doc.Root!.Element(ns + "jobId");
 
-        var jobUrl = response.Headers.Location!.ToString();
+        var jobId = jobIdElement!.Value;
+        var jobUrl = $"{httpClient.BaseAddress}tap-server/tap/async/{jobId}";
+
+        var startPhaseRequestUrl = $"tap-server/tap/async/{jobIdElement.Value}/phase";
+        var startPhaseRequestContent = new StringContent("PHASE=RUN");
+        startPhaseRequestContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+        var starPhaseResponse = await httpClient.PostAsync(startPhaseRequestUrl, startPhaseRequestContent);
+        starPhaseResponse.EnsureSuccessStatusCode();
+
+        var jobsContainer = await GetJobContainer(cancellationToken);
+
+        var gaiaJob = new GaiaExoplanetJob { Id = Guid.NewGuid(), JobUrl = jobUrl, SourceId = sourceId, Status = GaiaExoplanetJob.StatusTypes.PENDING };
 
         await jobsContainer.CreateItemAsync(
-            new GaiaJob(sourceId, jobUrl, StatusTypes.RUNNING),
-            new PartitionKey("nasaSpaceApps"),
+            gaiaJob,
+            new PartitionKey(gaiaJob.PartitionKey),
             cancellationToken: cancellationToken
         );
 
         jobsManager.Add(sourceId, jobUrl);
     }
 
-    public record JobGetterFilters(IEnumerable<StatusTypes> Status);
-    public async Task<IEnumerable<GaiaJob>> GetJobs(JobGetterFilters? jobGetterFilters = null, CancellationToken cancellationToken = default)
+    public record JobGetterFilters(IEnumerable<GaiaExoplanetJob.StatusTypes> Status);
+    public async Task<IEnumerable<GaiaExoplanetJob>> GetJobs(JobGetterFilters? jobGetterFilters = null, CancellationToken cancellationToken = default)
     {
-        var container = await GetContainer(cancellationToken);
+        var container = await GetJobContainer(cancellationToken);
 
         var queryBuilder = new StringBuilder("SELECT * FROM gaiaJobs gj");
 
@@ -125,7 +169,7 @@ public class GaiaRepository
         {
             queryBuilder.AppendLine(" WHERE ");
             if (jobGetterFilters.Status.Any())
-                queryBuilder.Append($"ARRAY_CONTAINS(@{nameof(jobGetterFilters.Status).ToLower()}, gj.status)");
+                queryBuilder.Append($"ARRAY_CONTAINS(@{nameof(jobGetterFilters.Status).ToLower()}, gj.Status)");
         }
 
         var query = new QueryDefinition(queryBuilder.ToString());
@@ -134,114 +178,88 @@ public class GaiaRepository
         {
             if (jobGetterFilters.Status is not null)
                 query.WithParameter(
-                    $"@status", 
-                    jobGetterFilters.Status.Select(status => status.ToString())
+                    $"@status",
+                     jobGetterFilters.Status.Select(s => (int)s).ToArray()
                 );
         }
 
-        var gaiaJobs = new HashSet<IEnumerable<GaiaJob>>();
+        var gaiaJobs = new HashSet<IEnumerable<GaiaExoplanetJob>>();
 
-        using var resultSetIterator = container.GetItemQueryIterator<GaiaJob>(query);
+        using var resultSetIterator = container.GetItemQueryIterator<GaiaExoplanetJob>(query);
         while (resultSetIterator.HasMoreResults)
             gaiaJobs.Add(await resultSetIterator.ReadNextAsync(cancellationToken));
 
         return gaiaJobs.SelectMany(gaiajob => gaiajob);
     }
 
-    public async Task<GaiaJob?> GetJob(string sourceId, CancellationToken cancellationToken = default)
+    public async Task<GaiaExoplanetJob?> GetJob(string sourceId, CancellationToken cancellationToken = default)
     {
-        var container = await GetContainer(cancellationToken);
+        var container = await GetJobContainer(cancellationToken);
 
-        var query = new QueryDefinition("SELECT TOP 1 * FROM gaiaJobs gj WHERE gj.sourceId = @sourceId")
+        var query = new QueryDefinition("SELECT TOP 1 * FROM gaiaJobs gj WHERE gj.SourceId = @sourceId")
             .WithParameter("@sourceId", sourceId);
 
-        using var resultSetIterator = container.GetItemQueryIterator<GaiaJob>(query);
+        using var resultSetIterator = container.GetItemQueryIterator<GaiaExoplanetJob>(query);
 
-        var gaiaJobs = await resultSetIterator.ReadNextAsync(cancellationToken);
+        FeedResponse<GaiaExoplanetJob>? response = null;
 
-        return gaiaJobs.FirstOrDefault();
+        while (resultSetIterator.HasMoreResults)
+            response = await resultSetIterator.ReadNextAsync(cancellationToken);
+
+        return response?.FirstOrDefault();
     }
 
-    public async Task<Dictionary<string, object>> GetJobResults(string jobUrl, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<GaiaSource>> GetJobResults(GaiaExoplanetJob job, string jobUrl, CancellationToken cancellationToken = default)
     {
         var response = await httpClient.GetAsync($"{jobUrl}/results/result", cancellationToken);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<Dictionary<string, object>>(cancellationToken: cancellationToken))!;
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var jsonResult = JObject.Parse(content);
+
+        var keys = new HashSet<string>();
+
+        var metadata = jsonResult["metadata"];
+
+        foreach (var metadataValue in metadata)
+        {
+            keys.Add((metadataValue as JObject).GetValue("name").Value<string>());
+        }
+
+        var data = jsonResult["data"];
+
+        var dictionaries = new HashSet<GaiaSource>();
+
+        foreach (var dataValue in data)
+        {
+            var dictionary = new Dictionary<string, string>();
+            for (int i = 0; i < keys.Count; i++)
+            {
+                dictionary.Add(keys.ElementAt(i), dataValue[i]!.Value<string>()!);
+            }
+
+            dictionaries.Add(new GaiaSource { 
+                Id = Guid.NewGuid(),
+                JobId = job.Id!.Value,
+                StarData = dictionary
+            });
+        }
+
+        return dictionaries;
     }
 
-    public async Task<StatusTypes> CheckJobStatus(string jobUrl, CancellationToken cancellationToken = default)
+    public async Task<GaiaExoplanetJob.StatusTypes> CheckJobStatus(string jobUrl, CancellationToken cancellationToken = default)
     {
         var response = await httpClient.GetAsync(jobUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         string content = await response.Content.ReadAsStringAsync(cancellationToken);
 
-        var xdoc = XDocument.Parse(content);
-        return Enum.Parse<StatusTypes>(xdoc.Root!.Element("phase")!.Value);
-    }
-}
+        var doc = XDocument.Parse(content);
+        XNamespace ns = "http://www.ivoa.net/xml/UWS/v1.0";
+        var phaseElement = doc.Root!.Element(ns + "phase");
 
-
-class GaiaAsyncQuery
-{
-    private static readonly HttpClient client = new HttpClient();
-    private const string GAIA_TAP_URL = "http://gea.esac.esa.int/tap-server/tap/async";
-
-    public static async Task<string> StartGaiaQueryAsync(string query)
-    {
-        var content = new FormUrlEncodedContent(new[]
-        {
-            new KeyValuePair<string, string>("REQUEST", "doQuery"),
-            new KeyValuePair<string, string>("LANG", "ADQL"),
-            new KeyValuePair<string, string>("FORMAT", "json"),
-            new KeyValuePair<string, string>("QUERY", query)
-        });
-
-        var response = await client.PostAsync(GAIA_TAP_URL, content);
-        response.EnsureSuccessStatusCode();
-        string jobUrl = response.Headers.Location.ToString();
-        return jobUrl;
-    }
-
-    public static async Task<string> CheckJobStatus(string jobUrl)
-    {
-        var response = await client.GetAsync(jobUrl);
-        response.EnsureSuccessStatusCode();
-        string content = await response.Content.ReadAsStringAsync();
-        var xdoc = XDocument.Parse(content);
-        return xdoc.Root.Element("phase").Value;
-    }
-
-    public static async Task<string> GetJobResults(string jobUrl)
-    {
-        var response = await client.GetAsync($"{jobUrl}/results/result");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
-    }
-
-    static async Task Main()
-    {
-        string query = "SELECT TOP 10 source_id, ra, dec FROM gaiadr3.gaia_source";
-        string jobUrl = await StartGaiaQueryAsync(query);
-        Console.WriteLine($"Job URL: {jobUrl}");
-
-        string status;
-        do
-        {
-            await Task.Delay(5000); // Wait 5 seconds before checking again
-            status = await CheckJobStatus(jobUrl);
-            Console.WriteLine($"Job status: {status}");
-        } while (status != "COMPLETED" && status != "ERROR");
-
-        if (status == "COMPLETED")
-        {
-            string result = await GetJobResults(jobUrl);
-            Console.WriteLine("Query results:");
-            Console.WriteLine(result);
-        }
-        else
-        {
-            Console.WriteLine("Job failed or encountered an error.");
-        }
+        return Enum.Parse<GaiaExoplanetJob.StatusTypes>(phaseElement!.Value);
     }
 }

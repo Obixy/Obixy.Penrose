@@ -1,4 +1,5 @@
 ﻿
+using DataManager.Domain;
 using DataManager.Repositories;
 
 namespace DataManager;
@@ -22,25 +23,27 @@ public class JobBackgroudService : BackgroundService
         {
             var gaiaRepository = serviceProvider.GetRequiredService<GaiaRepository>();
 
-            foreach (var job in jobsManager.GetJobs())
+            foreach (var (sourceId, jobUrl) in jobsManager.GetJobs())
             {
-                var status = await gaiaRepository.CheckJobStatus(job.Value, stoppingToken);
+                var status = await gaiaRepository.CheckJobStatus(jobUrl, stoppingToken);
 
-                if (status is GaiaJob.StatusTypes.RUNNING)
-                    continue;
-
-                if (status is GaiaJob.StatusTypes.ERROR)
+                if (status is GaiaExoplanetJob.StatusTypes.ERROR)
                 {
-                    jobsManager.Remove(job.Key);
+                    jobsManager.Remove(sourceId);
                     continue;
                 }
 
-                if (status is GaiaJob.StatusTypes.COMPLETED)
+                if (status is GaiaExoplanetJob.StatusTypes.COMPLETED)
                 {
-                    var result = await gaiaRepository.GetJobResults(job.Value, stoppingToken);
+                    var storedJob = await gaiaRepository.GetJob(sourceId,stoppingToken);
 
-                    await gaiaRepository.AddJobResult(result, stoppingToken);
-                    jobsManager.Remove(job.Key);
+                    if (storedJob is null)
+                        throw new Exception($"StoredJob was null for: sourceId: {sourceId}, jobUrl:{jobUrl}");
+
+                    var sourceBatch = await gaiaRepository.GetJobResults(storedJob, jobUrl, stoppingToken);
+
+                    await gaiaRepository.AddSourceBatch(sourceBatch, storedJob, stoppingToken);
+                    jobsManager.Remove(sourceId);
                 }
             }
 
