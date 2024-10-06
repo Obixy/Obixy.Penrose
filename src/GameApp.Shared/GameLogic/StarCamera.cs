@@ -61,6 +61,8 @@ public class StarCamera
                 SpriteEffects.None, 
                 0
             );
+
+            return;
         }
 
         var stars = starSource.GetStars();

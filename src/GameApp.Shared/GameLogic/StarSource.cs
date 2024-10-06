@@ -1,14 +1,23 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GameApp.Shared.GameLogic;
+
+[JsonSerializable(typeof(ICollection<Dictionary<string, string>>))]
+internal partial class DictionaryCollectionJsonContext : JsonSerializerContext
+{
+    
+}
 
 // Load stars from database
 public class StarSource
@@ -17,50 +26,66 @@ public class StarSource
     // Quantized magnitude -> Star texture
     private Dictionary<double, Texture2D> _textureCache = new Dictionary<double, Texture2D>();
     private readonly HttpClient httpClient = new();
-    const string url = "https://localhost:7013/exoplanets/{0}/stars";
-    private Task? _startsQueryTask;
+    const string url = "https://nsac-obixy-penrose-data-auefcgedgjhyanbw.canadacentral-01.azurewebsites.net/exoplanets/{0}/stars";
+    private bool HasBegunLoading = false;
     public bool IsLoading = false;
     public bool HasLoadedTextures = false;
 
-    public Task EnsureStartsQueryTask(Guid exoplanetId)
+    public void EnsureStartsQueryTask(Guid exoplanetId)
     {
-        return _startsQueryTask ??= Task.Run(async () =>
+        if (!HasBegunLoading)
         {
-            IsLoading = true;
-            using var httpClient = new HttpClient();
-            using var streamReader = new StreamReader(await httpClient.GetStreamAsync(string.Format(url, exoplanetId)));
-
-            var stars = new HashSet<Dictionary<string, string>>();
-
-            while (!streamReader.EndOfStream)
+            HasBegunLoading = true;
+            Task.Run(async () =>
             {
-                var line = await streamReader.ReadLineAsync();
+                IsLoading = true;
+                using var httpClient = new HttpClient();
+                using var streamReader = new StreamReader(await httpClient.GetStreamAsync(string.Format(url, exoplanetId)));
 
-                var json = line![6..];
-                var starsData = JsonSerializer.Deserialize<ICollection<Dictionary<string, string>>>(json)!;
-                Console.WriteLine($"{starsData.Count}");
+                var stars = new ConcurrentBag<Dictionary<string, string>>();
 
-                stars.Add(starsData.SelectMany(starData => starData).ToDictionary());
-            }
+                while (!streamReader.EndOfStream)
+                {
+                    try
+                    {
+                        var line = await streamReader.ReadLineAsync();
+                        if (line!.StartsWith("data: "))
+                        {
+                            var json = line![6..];
+                            ICollection<Dictionary<string, string>> starsData = JsonConvert.DeserializeObject<ICollection<Dictionary<string, string>>>(json)!;
 
-            this.stars = stars.Select(star => new Star(
-                float.Parse(star["sourceId"]),
-                0,
-                0,
-                0,
-                0,
-                0
-            ));
+                            foreach (var item in starsData)
+                                stars.Add(item);
+                        }
 
-            IsLoading = false;
-        });
+
+                    }
+                    catch (Exception e)
+                    {
+                         
+                        throw;
+                    }
+                }
+
+                this.stars = stars.Select(star => new Star(
+                    float.Parse(star["source_id"]),
+                    float.Parse(star["ra"]),
+                    float.Parse(star["dec"]),
+                    float.Parse(star["parallax"]),
+                    BPRP: -1.530862f,
+                    GMag: -1.46f
+                )).Take(1000).ToArray();
+
+                IsLoading = false;
+            });
+        }
     }
 
     private const int TextureSize = 16;
     public static Texture2D CreateStarTexture(GraphicsDevice graphicsDevice, int textureSize, Color color, double magnitude)
     {
         // Calculate the scaled texture size based on magnitude
-        var scaledSize = (int)CalculateScaledSize(magnitude) * textureSize;
+        var scaledSize = (int)/*CalculateScaledSize(magnitude) **/ textureSize;
 
         // Create a new texture with the scaled size
         Texture2D texture = new Texture2D(graphicsDevice, scaledSize, scaledSize);
@@ -112,9 +137,9 @@ public class StarSource
         return scale;
     }
 
-    public void Update(GraphicsDevice graphicsDevice, Guid jobId)
+    public void Update(GraphicsDevice graphicsDevice, Guid? jobId)
     {
-        EnsureStartsQueryTask(jobId);
+        EnsureStartsQueryTask(jobId ??= Guid.Parse("88c334d4-baba-4273-8ed0-efef4b78d03d"));
 
         if (!IsLoading && stars.Any())
         {
