@@ -3,7 +3,8 @@ import { QueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://localhost:5001/api",
+  baseURL:
+    "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net",
 });
 
 export const queryClient = new QueryClient({

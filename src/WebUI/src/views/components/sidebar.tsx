@@ -1,6 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
+import { explanetsService } from "@/services/exoplanets";
 import { Manual } from "./manual";
+import { useUnitMeasure } from "@/lib/change-unity-measure";
 
 export function Sidebar() {
+  const { unitMeasure, convertValue } = useUnitMeasure();
+
+  const { data } = useQuery({
+    queryKey: ["exoplanets"],
+    queryFn: explanetsService.getAll,
+  });
+
   return (
     <div className="w-[450px] h-[96vh] absolute inset-0 my-auto ml-4 flex grow overflow-hidden rounded-[2rem] border-y border-b-white/10 border-t-white/15 bg-black/15 shadow-xl shadow-black/30 backdrop-blur-2xl">
       <div className="flex grow flex-col gap-5 overflow-y-auto">
@@ -36,44 +46,38 @@ export function Sidebar() {
         </div>
 
         <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pb-28 pr-2.5 relative">
-          <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
-            <img src="./planet.png" className="absolute top-2 right-2 w-24" />
+          {data?.map((exoplanet) => {
+            const parallaxValue = exoplanet.parallax;
 
-            <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              9.3 Light-years
-            </span>
-            <p className="max-w-[60%] text-start text-white text-2xl">
-              Proxima Centauri b
-            </p>
-          </button>
+            const convertedValue = convertValue(
+              parallaxValue,
+              "parallax",
+              unitMeasure
+            );
 
-          <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
-            <img
-              src="./image-removebg-preview.png"
-              className="absolute -top-2 -right-2 w-32"
-            />
+            return (
+              <button
+                key={exoplanet.name}
+                className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative"
+              >
+                <img
+                  src="./image-removebg-preview (1).png"
+                  className="absolute top-2 right-2 w-28"
+                  alt="exoplanet"
+                />
 
-            <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              7 Light-years
-            </span>
-            <p className="max-w-[60%] text-start text-white text-2xl">
-              TRAPPIST-1e
-            </p>
-          </button>
-
-          <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
-            <img
-              src="./image-removebg-preview (1).png"
-              className="absolute top-2 right-2 w-28"
-            />
-
-            <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              4 Light-years
-            </span>
-            <p className="max-w-[60%] text-start text-white text-2xl">
-              LHS 1140 b
-            </p>
-          </button>
+                <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
+                  {unitMeasure === "kilometers"
+                    ? convertedValue.toExponential(2)
+                    : convertedValue.toFixed(2)}{" "}
+                  {unitMeasure}
+                </span>
+                <p className="max-w-[60%] text-start text-white text-2xl">
+                  {exoplanet.name}
+                </p>
+              </button>
+            );
+          })}
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-1/3 bg-gradient-to-t from-current hidden sm:flex"></div>
