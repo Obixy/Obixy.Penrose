@@ -7,13 +7,16 @@ import { UnitMeasureProvider } from "@/lib/change-unity-measure.tsx";
 import { queryClient } from "@/services/index.ts";
 
 import "./styles/index.css";
+import { JobProvider } from "./lib/change-job-id";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <UnitMeasureProvider>
-      <QueryClientProvider client={queryClient}>
-        <View />
-      </QueryClientProvider>
+      <JobProvider>
+        <QueryClientProvider client={queryClient}>
+          <View />
+        </QueryClientProvider>
+      </JobProvider>
     </UnitMeasureProvider>
   </StrictMode>
 );

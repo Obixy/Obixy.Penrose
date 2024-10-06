@@ -12,11 +12,7 @@ type Unit = "mas" | "parsec" | "lightYears" | "kilometers";
 
 const units: Unit[] = ["mas", "parsec", "lightYears", "kilometers"];
 
-interface OptionsBarProps {
-  onUnitChange: (unit: Unit) => void;
-}
-
-export function OptionsBar({ onUnitChange }: OptionsBarProps) {
+export function OptionsBar() {
   const { unitMeasure, setUnitMeasure, convertValue } = useUnitMeasure();
 
   const [value] = useState<number>(1);
@@ -28,7 +24,6 @@ export function OptionsBar({ onUnitChange }: OptionsBarProps) {
 
   function handleUnitChange(newUnit: Unit) {
     setUnitMeasure(newUnit);
-    onUnitChange(newUnit);
   }
 
   return (
@@ -56,7 +51,9 @@ export function OptionsBar({ onUnitChange }: OptionsBarProps) {
               onClick={() => handleUnitChange(unit)}
               className="cursor-pointer hover:bg-white/10 px-4 py-2 rounded-xl"
             >
-              {unit === "mas" ? "Parallax (mas)" : unit.charAt(0).toUpperCase() + unit.slice(1)}
+              {unit === "mas"
+                ? "Parallax (mas)"
+                : unit.charAt(0).toUpperCase() + unit.slice(1)}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
