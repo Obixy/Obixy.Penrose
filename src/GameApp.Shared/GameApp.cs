@@ -27,7 +27,7 @@ public class GameApp : Game
         Content.RootDirectory = "Content";
     }
 
-    private Guid _jobId;
+    private Guid? _jobId;
     public void UpdateWebInput(IDictionary<string, object> input)
     {
         if (input.TryGetValue("jobId", out var jobId))

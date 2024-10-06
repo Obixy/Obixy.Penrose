@@ -26,7 +26,9 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddHttpClient<GaiaTapRepository>((sp, options) =>
 {
-    options.BaseAddress = new("https://gea.esac.esa.int/"); // TODO: Configure enviroment variable
+    var configuration = sp.GetRequiredService<IConfiguration>();
+
+    options.BaseAddress = new(configuration.GetValue<string>("GaiaBaseUrl")!);
 });
 
 builder.Services.AddSingleton<PenroseRepository>();
@@ -68,7 +70,8 @@ app.MapPost("jobs", async (
         Name = request.ExoplanetName,
         JobUrl = jobUrl,
         SourceId = request.SourceId.Trim(),
-        Status = GaiaExoplanetJob.StatusTypes.PENDING
+        Status = GaiaExoplanetJob.StatusTypes.PENDING,
+        Parallax = request.ParallaxFromEarth
     };
 
     await penroseRepository.Store(gaiaJob, cancellationToken);
@@ -148,11 +151,13 @@ using (var scope = app.Services.CreateScope())
 
     foreach (var jobInProgress in runningJobs)
         jobsManager.Add(jobInProgress.SourceId, jobInProgress.JobUrl);
+
+
 }
 
 app.Run();
 
-public record JobPostRequest(string SourceId, string ExoplanetName);
+public record JobPostRequest(string SourceId, string ExoplanetName, float ParallaxFromEarth);
 public record JobStatusResponse(string Status);
 public record ExoplanetGetResponse(Guid Id, string Name, float Parallax);
 public record ErrorResponse(string Message);

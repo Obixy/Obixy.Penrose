@@ -136,6 +136,13 @@
             },
         };
 
+        function postMessageToParent(message) {
+            if (window.parent)
+                return;
+
+            window.parent.postMessage(message);
+        }
+
         window.addEventListener("message", (event) => {
             if (window.interopHelper.dotnetHelper) {
                 window.interopHelper.dotnetHelper.invokeMethodAsync(

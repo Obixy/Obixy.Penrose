@@ -51,8 +51,6 @@ public class JobBackgroudService : BackgroundService
 
                     var sourceBatch = await gaiaRepository.GetJobResults(storedJob, jobUrl, stoppingToken);
 
-                    storedJob.Parallax = float.Parse(sourceBatch.First().StarData["proxima_parallax"]);
-
                     await penroseRepository.AddSourceBatch(sourceBatch, storedJob, stoppingToken);
                     jobsManager.Remove(sourceId);
                 }
