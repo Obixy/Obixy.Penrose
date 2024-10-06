@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type Unit = "parallax" | "parsec" | "lightYears" | "kilometers";
+type Unit = "mas" | "parsec" | "lightYears" | "kilometers";
 
 type UnitMeasureContextType = {
   unitMeasure: Unit;
@@ -17,7 +17,7 @@ interface UnitMeasureProviderProps {
 }
 
 export function UnitMeasureProvider({ children }: UnitMeasureProviderProps) {
-  const [unitMeasure, setUnitMeasure] = useState<Unit>("parallax");
+  const [unitMeasure, setUnitMeasure] = useState<Unit>("mas");
 
   function convertValue(value: number, fromUnit: Unit, toUnit: Unit): number {
     if (fromUnit === toUnit) {
@@ -27,11 +27,8 @@ export function UnitMeasureProvider({ children }: UnitMeasureProviderProps) {
     let parallaxValue: number = value;
     const parsecValue: number = 1000 / value;
 
-    console.log(parsecValue);
-    console.log(parsecValue * 3.262);
-
     switch (fromUnit) {
-      case "parallax":
+      case "mas":
         parallaxValue = value;
         break;
       case "parsec":
@@ -46,7 +43,7 @@ export function UnitMeasureProvider({ children }: UnitMeasureProviderProps) {
     }
 
     switch (toUnit) {
-      case "parallax":
+      case "mas":
         return parallaxValue;
       case "parsec":
         return 1000 / parallaxValue;

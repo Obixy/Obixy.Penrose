@@ -51,7 +51,7 @@ export function Sidebar() {
 
             const convertedValue = convertValue(
               parallaxValue,
-              "parallax",
+              "mas",
               unitMeasure
             );
 

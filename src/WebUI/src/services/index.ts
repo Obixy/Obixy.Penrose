@@ -4,7 +4,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL:
-    "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net",
+    "https://nsac-obixy-penrose-data-auefcgedgjhyanbw.canadacentral-01.azurewebsites.net",
 });
 
 export const queryClient = new QueryClient({
