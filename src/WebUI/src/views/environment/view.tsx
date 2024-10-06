@@ -1,8 +1,10 @@
 import { useRef, useEffect } from "react";
-import { Sidebar, OptionsBar } from "../components";
+import { useJobContext } from "@/lib/change-job-id";
+import { OptionsBar, Sidebar } from "../components";
 
 export function View() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { jobId } = useJobContext();
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -14,17 +16,29 @@ export function View() {
     }
   }, []);
 
+  useEffect(() => {
+    const iframe = iframeRef.current;
+
+    if (iframe) {
+      iframe.contentWindow?.postMessage(
+        {
+          jobId: jobId,
+        },
+        "*"
+      );
+    }
+  }, [jobId]);
+
   return (
     <div className="relative">
       <Sidebar />
-
       <iframe
         ref={iframeRef}
         src="https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
         className="w-full h-screen object-cover"
       ></iframe>
 
-      <OptionsBar onUnitChange={(unit: string) => console.log(unit)} />
+      <OptionsBar />
     </div>
   );
 }
