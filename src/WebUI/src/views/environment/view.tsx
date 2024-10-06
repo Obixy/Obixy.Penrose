@@ -29,7 +29,7 @@ export function View() {
     function handleMessage(e: any) {
       if (
         e.origin !==
-        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
+        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net"
       ) {
         return;
       }
@@ -37,11 +37,7 @@ export function View() {
       console.log(e.data);
     }
 
-    iframeRef.current?.addEventListener("message", handleMessage);
-
-    return () => {
-      iframeRef.current?.removeEventListener("message", handleMessage);
-    };
+    window.addEventListener("message", handleMessage);
   }, []);
 
   useEffect(() => {
@@ -80,7 +76,7 @@ export function View() {
 
       <iframe
         ref={iframeRef}
-        src="https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
+        src="https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net"
         className="w-full h-screen object-cover"
       ></iframe>
 
