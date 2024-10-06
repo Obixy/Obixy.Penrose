@@ -26,6 +26,25 @@ export function View() {
   }, []);
 
   useEffect(() => {
+    function handleMessage(e: any) {
+      if (
+        e.origin !==
+        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
+      ) {
+        return;
+      }
+
+      console.log(e.data);
+    }
+
+    iframeRef.current?.addEventListener("message", handleMessage);
+
+    return () => {
+      iframeRef.current?.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
+  useEffect(() => {
     const hasShownAlert = localStorage.getItem("@nasaspaceapps:manual");
 
     if (!hasShownAlert) {

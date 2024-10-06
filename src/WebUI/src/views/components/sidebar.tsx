@@ -40,25 +40,6 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
     }
   }, [filteredExoplanets, setExoplanet]);
 
-  useEffect(() => {
-    function handleMessage(e: any) {
-      if (
-        e.origin !==
-        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
-      ) {
-        return;
-      }
-
-      console.log(e.data);
-    }
-
-    window.addEventListener("message", handleMessage);
-
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, []);
-
   const sortedExoplanets = filteredExoplanets?.sort((a, b) => {
     if (a.name === "Proxima Centauri") return -1;
     if (b.name === "Proxima Centauri") return 1;
