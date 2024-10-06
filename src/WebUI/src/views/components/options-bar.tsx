@@ -41,7 +41,7 @@ export function OptionsBar({ onUnitChange }: OptionsBarProps) {
 
         <DropdownMenuContent
           align="center"
-          className="flex flex-col text-white flex-none justify-center overflow-hidden rounded-2xl border-y border-b-white/10 border-t-white/20 bg-black/50 p-2 shadow-xl shadow-black/30 backdrop-blur-3xl sm:mr-2"
+          className="flex flex-col text-white flex-none justify-center overflow-hidden rounded-2xl border border-x-0 border-b-white/10 border-t-white/20 bg-black/50 p-2 shadow-xl shadow-black/30 backdrop-blur-3xl sm:mr-2"
         >
           {Object.entries(Units)
             .filter(([key]) => isNaN(Number(key)))

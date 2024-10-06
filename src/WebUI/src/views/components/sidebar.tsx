@@ -6,7 +6,10 @@ export function Sidebar() {
       <div className="flex grow flex-col gap-5 overflow-y-auto">
         <div className="p-5 flex grow flex-col gap-5">
           <header className="mb-4 flex items-center justify-between">
-            <h1 className="text-2xl text-gray-400">Penrose</h1>
+            <div className="flex items-center gap-2">
+              <img src="/obixy-nasa.png" className="w-12" alt="" />
+              <h1 className="text-2xl text-gray-400">Penrose</h1>
+            </div>
 
             <Manual />
           </header>
@@ -32,7 +35,7 @@ export function Sidebar() {
           </div>
         </div>
 
-        <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pb-24 pr-2.5 relative">
+        <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pb-28 pr-2.5 relative">
           <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
             <img
               src="./public/planet.png"
@@ -43,49 +46,35 @@ export function Sidebar() {
             </p>
 
             <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              200 anos luz
+              9.3 Light-years
             </span>
           </button>
 
           <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
             <img
-              src="./public/planet.png"
-              className="absolute top-2 right-2 w-24"
+              src="./public/image-removebg-preview.png"
+              className="absolute -top-2 -right-2 w-32"
             />
             <p className="max-w-[60%] text-start text-white text-2xl">
-              Proxima Centauri b
+            TRAPPIST-1e
             </p>
 
             <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              200 anos luz
+              7 Light-years
             </span>
           </button>
 
           <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
             <img
-              src="./public/planet.png"
-              className="absolute top-2 right-2 w-24"
+              src="./public/image-removebg-preview (1).png"
+              className="absolute top-2 right-2 w-28"
             />
             <p className="max-w-[60%] text-start text-white text-2xl">
-              Proxima Centauri b
+              LHS 1140 b
             </p>
 
             <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              200 anos luz
-            </span>
-          </button>
-
-          <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
-            <img
-              src="./public/planet.png"
-              className="absolute top-2 right-2 w-24"
-            />
-            <p className="max-w-[60%] text-start text-white text-2xl">
-              Proxima Centauri b
-            </p>
-
-            <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
-              200 anos luz
+              4 Light-years
             </span>
           </button>
         </div>
