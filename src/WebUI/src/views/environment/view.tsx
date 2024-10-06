@@ -12,6 +12,7 @@ export function View() {
         iframe.focus();
       };
     }
+
   }, []);
 
   return (
