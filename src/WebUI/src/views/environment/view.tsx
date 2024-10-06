@@ -1,7 +1,6 @@
 import { useRef, useEffect } from "react";
 import { useJobContext } from "@/lib/change-job-id";
-
-import { Sidebar, OptionsBar } from "../components";
+import { OptionsBar, Sidebar } from "../components";
 
 export function View() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -33,7 +32,6 @@ export function View() {
   return (
     <div className="relative">
       <Sidebar />
-
       <iframe
         ref={iframeRef}
         src="https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
