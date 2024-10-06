@@ -47,8 +47,22 @@ public class StarCamera
             Rotate(Right, -RotationSpeed * deltaTime);
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, StarSource starSource, ClickDetectionGrid clickDetectionGrid)
+    public void Draw(GraphicsDevice graphicsDevice, SpriteFont spriteFont, SpriteBatch spriteBatch, StarSource starSource, ClickDetectionGrid clickDetectionGrid)
     {
+        if(!starSource.HasLoadedTextures)
+        {
+            spriteBatch.DrawString(
+                spriteFont, "loading...", 
+                graphicsDevice.Viewport.Bounds.Center.ToVector2(), 
+                Color.Blue, 
+                0f, 
+                Vector2.Zero, 
+                new Vector2(1f, 1f), 
+                SpriteEffects.None, 
+                0
+            );
+        }
+
         var stars = starSource.GetStars();
 
         var viewMatrix = GetViewMatrix();
