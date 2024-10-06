@@ -106,6 +106,18 @@
             // when running inside an iframe. e.g: itch.io embedding.
             event.preventDefault();
         };
+
+        window.interopHelper = {
+            storeObjectRef: function (dotnetHelper) {
+                this.dotnetHelper = dotnetHelper;
+            }
+        };
+
+        window.addEventListener('message', (event) => {
+            if (window.interopHelper.dotnetHelper) {
+                window.interopHelper.dotnetHelper.invokeMethodAsync('EventListener', event.data);
+            }
+        });
     </script>
 </body>
 
