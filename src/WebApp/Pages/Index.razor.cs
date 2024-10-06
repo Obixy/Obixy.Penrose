@@ -22,6 +22,11 @@ namespace WebApp.Pages
             _game?.UpdateWebInput(input);
         }
 
+        public async Task PostMessageToParent(object message)
+        {
+            await JsRuntime.InvokeVoidAsync("postMessageToParent", message);
+        }
+
         protected override void OnAfterRender(bool firstRender)
         {
             base.OnAfterRender(firstRender);
