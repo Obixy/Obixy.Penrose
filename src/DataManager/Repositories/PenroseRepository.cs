@@ -14,6 +14,7 @@ public class PenroseRepository
     private Database? database;
     private Container? jobContainer;
     private Container? sourceContainer;
+    private Container? constellationContainer;
 
     public PenroseRepository(
         CosmosClient cosmosClient,
@@ -34,6 +35,12 @@ public class PenroseRepository
     {
         database ??= (await cosmosClient.CreateDatabaseIfNotExistsAsync("PenroseDb", cancellationToken: cancellationToken)).Database;
         return sourceContainer ??= (await database.CreateContainerIfNotExistsAsync("SourceContext", "/PartitionKey", throughput: 400, cancellationToken: cancellationToken)).Container;
+    }
+
+    private async Task<Container> GetConstellationContainer(CancellationToken cancellationToken = default)
+    {
+        database ??= (await cosmosClient.CreateDatabaseIfNotExistsAsync("PenroseDb", cancellationToken: cancellationToken)).Database;
+        return sourceContainer ??= (await database.CreateContainerIfNotExistsAsync("ConstellationContext", "/PartitionKey", throughput: 400, cancellationToken: cancellationToken)).Container;
     }
 
     public async Task AddSourceBatch(IEnumerable<GaiaSource> gaiaSources, GaiaExoplanetJob exoplanetJob, CancellationToken cancellationToken = default)
@@ -77,6 +84,17 @@ public class PenroseRepository
         {
             throw new Exception($"Update failed with status code {updateResponse.StatusCode}");
         }
+    }
+
+    public async Task Store(Constellation constelation, CancellationToken cancellationToken)
+    {
+        var jobsContainer = await GetConstellationContainer(cancellationToken);
+
+        await jobsContainer.CreateItemAsync(
+            constelation,
+            new PartitionKey(constelation.PartitionKey),
+            cancellationToken: cancellationToken
+        );
     }
 
     public async Task Store(GaiaExoplanetJob gaiaJob, CancellationToken cancellationToken)
@@ -141,6 +159,21 @@ public class PenroseRepository
             response = await resultSetIterator.ReadNextAsync(cancellationToken);
 
         return response?.FirstOrDefault();
+    }
+
+    public async Task<IEnumerable<Constellation>> GetExplanetConstellations(Guid jobId, CancellationToken cancellationToken = default)
+    {
+        var container = await GetConstellationContainer(cancellationToken);
+
+        var countQuery = new QueryDefinition("SELECT * FROM gs g WHERE g.JobId = @jobId")
+            .WithParameter("@jobId", jobId);
+
+        var constellations = new List<Constellation>();
+        using var resultSetCountIterator = container.GetItemQueryIterator<Constellation>(countQuery);
+        while (resultSetCountIterator.HasMoreResults)
+            constellations.AddRange(await resultSetCountIterator.ReadNextAsync(cancellationToken));
+
+        return constellations;
     }
 
     public async IAsyncEnumerable<IEnumerable<GaiaSource>> GetExplanetStars(Guid jobId, [EnumeratorCancellation] CancellationToken cancellationToken = default)

@@ -137,7 +137,7 @@
         };
 
         function postMessageToParent(message) {
-            if (window.parent)
+            if (!window.parent)
                 return;
 
             window.parent.postMessage(message);

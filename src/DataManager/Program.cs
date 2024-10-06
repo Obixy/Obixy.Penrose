@@ -3,7 +3,6 @@ using Microsoft.Azure.Cosmos;
 using DataManager.Repositories;
 using DataManager;
 using DataManager.Domain;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,7 +132,7 @@ app.MapGet("exoplanets/{id}/stars", async (
     
     await foreach (var exoplanetStars in penroseRepository.GetExplanetStars(id, cancellationToken))
     {
-        var json = JsonSerializer.Serialize(exoplanetStars.Select(exoplanetStar => exoplanetStar.StarData));
+        var json = System.Text.Json.JsonSerializer.Serialize(exoplanetStars.Select(exoplanetStar => exoplanetStar.StarData));
         await httpResponse.WriteAsync($"data: {json}\n\n", cancellationToken: cancellationToken);
         await httpResponse.Body.FlushAsync(cancellationToken);
     }
@@ -141,6 +140,48 @@ app.MapGet("exoplanets/{id}/stars", async (
 .WithTags("Exoplanets")
 .WithOpenApi()
 .Produces<IEnumerable<IDictionary<string, string>>>();
+
+app.MapGet("exoplanets/{id}/constellation", async (
+    [FromRoute] Guid id,
+    [FromServices] PenroseRepository penroseRepository,
+    CancellationToken cancellationToken
+) =>
+{
+    var constellations = await penroseRepository.GetExplanetConstellations(id, cancellationToken: cancellationToken);
+
+    var response = constellations.Select(gaiaJob => new ConstellationResponse(
+        gaiaJob.Id,
+        gaiaJob.Name,
+        gaiaJob.Votes,
+        gaiaJob.Points.Select(p => new ConstellationResponse.PointResponse(p.SourceId, p.X, p.Y, p.Z))
+    ));
+
+    return Results.Ok(response);
+})
+.WithTags("Constellations")
+.WithOpenApi()
+.Produces<IEnumerable<ConstellationResponse>>();
+
+app.MapPost("exoplanets/{id}/constellation", async (
+    [FromBody] ConstellationRequest request,
+    [FromRoute] Guid id,
+    [FromServices] PenroseRepository penroseRepository,
+    CancellationToken cancellationToken = default
+) =>
+{
+    await penroseRepository.Store(new Constellation { 
+        Id = Guid.NewGuid(),
+        JobId = id,
+        Name = request.Name,
+        Points = request.Points.Select(x => new Constellation.Point { SourceId =x.SourceId, X = x.X, Y=x.Y, Z = x.Z }),
+        Votes = 0
+    }, cancellationToken);
+
+    return Results.Created();
+})
+.WithTags("Constellations")
+.Produces<ErrorResponse>(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status201Created);
 
 using (var scope = app.Services.CreateScope())
 {
@@ -151,8 +192,6 @@ using (var scope = app.Services.CreateScope())
 
     foreach (var jobInProgress in runningJobs)
         jobsManager.Add(jobInProgress.SourceId, jobInProgress.JobUrl);
-
-
 }
 
 app.Run();
@@ -161,3 +200,23 @@ public record JobPostRequest(string SourceId, string ExoplanetName, float Parall
 public record JobStatusResponse(string Status);
 public record ExoplanetGetResponse(Guid Id, string Name, float Parallax);
 public record ErrorResponse(string Message);
+
+public record ConstellationRequest(string Name, IEnumerable<ConstellationRequest.PointRequest> Points)
+{
+    public record PointRequest(
+        string SourceId,
+        float X,
+        float Y,
+        float Z
+    );
+}
+
+public record ConstellationResponse(Guid Id, string Name, int Votes, IEnumerable<ConstellationResponse.PointResponse> Points)
+{
+    public record PointResponse(
+        string SourceId,
+        float X,
+        float Y,
+        float Z
+    );
+}

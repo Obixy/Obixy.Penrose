@@ -9,7 +9,7 @@ public class GaiaTapRepository
 {
     const string queryBase = @"
 WITH proxima_centauri AS (
-SELECT TOP 5000
+SELECT TOP 1
     source_id, 
     ra, 
     dec, 
@@ -21,7 +21,7 @@ FROM
 WHERE 
     source_id = {0}
 )
-SELECT TOP 10
+SELECT TOP 5000
     s.source_id,
     (s.ra + (p.proxima_distance_pc - (1000.0 / s.parallax)) / 3600.0) AS adjusted_ra,
     (s.dec + (p.proxima_distance_pc - (1000.0 / s.parallax)) / 3600.0) AS adjusted_dec,
