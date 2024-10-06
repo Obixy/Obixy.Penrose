@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { explanetsService } from "@/services/exoplanets";
 import { Manual } from "./manual";
 import { ExoplanetList } from "./exoplanet";
-import { SidebarIcon } from "lucide-react";
+import { Orbit, SidebarIcon } from "lucide-react";
 
 export function Sidebar() {
   const { data, isLoading } = useQuery({
@@ -30,7 +30,7 @@ export function Sidebar() {
         className="z-50 px-4 py-2 flex flex-col items-center rounded-md border-white/20 text-white bg-white/10 transition hover:bg-white/20 active:bg-white/10 
       duration-300 transform active:scale-95 aria-[current=page]:bg-primary hover:bg-[#f2f2f2] aria-[current=page]:text-[#ffffff] p-2.5 justify-center ease-in-out"
       >
-        <SidebarIcon className="w-5 h-5" />
+        <Orbit className="w-5 h-5" />
         <p className="text-sm">Exoplanets</p>
       </button>
     </div>
