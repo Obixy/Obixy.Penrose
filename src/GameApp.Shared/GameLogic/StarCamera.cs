@@ -37,13 +37,13 @@ public class StarCamera
             Position += Right * MoveSpeed * deltaTime;
 
         if (keyboardState.IsKeyDown(Keys.Left))
-            Rotate(Vector3.Up, -RotationSpeed * deltaTime);
-        if (keyboardState.IsKeyDown(Keys.Right))
             Rotate(Vector3.Up, RotationSpeed * deltaTime);
+        if (keyboardState.IsKeyDown(Keys.Right))
+            Rotate(Vector3.Up, -RotationSpeed * deltaTime);
         if (keyboardState.IsKeyDown(Keys.Up))
-            Rotate(Right, -RotationSpeed * deltaTime);
-        if (keyboardState.IsKeyDown(Keys.Down))
             Rotate(Right, RotationSpeed * deltaTime);
+        if (keyboardState.IsKeyDown(Keys.Down))
+            Rotate(Right, -RotationSpeed * deltaTime);
     }
 
     public void Draw(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, StarSource starSource)
