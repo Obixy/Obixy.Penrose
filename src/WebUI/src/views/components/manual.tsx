@@ -4,17 +4,21 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
-  DialogTrigger,
 } from "@/views/components/ui/dialog";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  Cog,
 } from "lucide-react";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
-export function Manual() {
+interface ManualProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+export function Manual({ isOpen, setIsOpen }: ManualProps) {
   const [focusIndex, setFocusIndex] = useState(0);
 
   const buttons = useMemo(
@@ -40,11 +44,8 @@ export function Manual() {
   }, [buttons, focusIndex]);
 
   return (
-    <Dialog>
-      <DialogTrigger className="group h-fit flex text-white items-center gap-2 rounded-full px-4 py-2 transition hover:bg-white/5">
-        <Cog className="w-5 h-5" />
-      </DialogTrigger>
-
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTitle className="hidden">Manual</DialogTitle>
       <DialogContent className="w-[400px] h-fit !rounded-3xl px-6 py-10 flex flex-col border-white/10 bg-black/15 shadow-xl shadow-black/30 backdrop-blur-2xl text-gray-300">
         <div className="flex flex-col items-center gap-2 justify-between pb-6 my-4 relative">
           <button
@@ -90,7 +91,9 @@ export function Manual() {
         </div>
 
         <DialogFooter className="mt-4">
-          <DialogClose type="submit">Continue</DialogClose>
+          <DialogClose type="submit" onClick={() => setIsOpen(false)}>
+            Continue
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

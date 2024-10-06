@@ -1,8 +1,9 @@
+import { ExoplanetProps } from "@/types";
 import { createContext, useState, ReactNode, useContext } from "react";
 
 interface JobContextType {
-  jobId: string | null;
-  setJobId: (id: string) => void;
+  exoplanet: ExoplanetProps | null;
+  setExoplanet: (exoplanet: ExoplanetProps) => void;
 }
 
 const JobContext = createContext<JobContextType | undefined>(undefined);
@@ -12,10 +13,10 @@ interface JobProviderProps {
 }
 
 export function JobProvider({ children }: JobProviderProps) {
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [exoplanet, setExoplanet] = useState<ExoplanetProps | null>(null);
 
   return (
-    <JobContext.Provider value={{ jobId, setJobId }}>
+    <JobContext.Provider value={{ exoplanet, setExoplanet }}>
       {children}
     </JobContext.Provider>
   );

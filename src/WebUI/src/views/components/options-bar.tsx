@@ -7,12 +7,14 @@ import {
 } from "@/views/components/ui/dropdown-menu";
 
 import { useUnitMeasure } from "@/lib/change-unity-measure";
+import { useJobContext } from "@/lib/change-job-id";
 
 type Unit = "mas" | "parsec" | "lightYears" | "kilometers";
 
 const units: Unit[] = ["mas", "parsec", "lightYears", "kilometers"];
 
 export function OptionsBar() {
+  const { exoplanet } = useJobContext();
   const { unitMeasure, setUnitMeasure, convertValue } = useUnitMeasure();
 
   const [value] = useState<number>(1);
@@ -27,17 +29,9 @@ export function OptionsBar() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-fit z-10 flex text-white justify-center rounded-full border-y border-b-white/10 border-t-white/20 bg-black/50 px-4 py-2 shadow-xl shadow-black/30 backdrop-blur-3xl">
-      <a
-        target="_blank"
-        href="https://www.obixy.com.br"
-        className="group flex items-center gap-2 rounded-full px-4 py-2 transition hover:bg-white/5"
-      >
-        Obixy.
-      </a>
-
+    <div className="fixed bottom-4 right-4 w-fit z-10 flex gap-2 text-white justify-center rounded-full border-y border-b-white/10 border-t-white/20 bg-black/50 px-4 py-2 shadow-xl shadow-black/30 backdrop-blur-3xl">
       <DropdownMenu>
-        <DropdownMenuTrigger className="ml-4 flex items-center gap-2 rounded-full px-4 py-2 transition hover:bg-white/5">
+        <DropdownMenuTrigger className="flex items-center gap-2 rounded-full px-4 py-2 transition hover:bg-white/5">
           Unit of Measure
         </DropdownMenuTrigger>
 
@@ -58,6 +52,13 @@ export function OptionsBar() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <button
+        type="button"
+        className="group flex items-center gap-2 rounded-full px-4 py-2 transition bg-white text-black"
+      >
+        {exoplanet?.name}
+      </button>
     </div>
   );
 }

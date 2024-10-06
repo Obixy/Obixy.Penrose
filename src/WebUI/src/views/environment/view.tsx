@@ -1,18 +1,36 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useJobContext } from "@/lib/change-job-id";
 import { OptionsBar, Sidebar } from "../components";
+import { Manual } from "../components/manual";
 
 export function View() {
+  const { exoplanet } = useJobContext();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const { jobId } = useJobContext();
+
+  const [open, setOpen] = useState(false);
+
+  const jobId = exoplanet?.id;
+
+  function handleFocus() {
+    iframeRef.current?.focus();
+  }
 
   useEffect(() => {
-    const iframe = iframeRef.current;
+    const hasOpened = localStorage.getItem("@nasaspaceapps:manual");
+    const hasOpenedBoolean = hasOpened === "true";
 
-    if (iframe) {
-      iframe.onload = function setIframeFocus() {
-        iframe.focus();
-      };
+    if (!hasOpenedBoolean) {
+      setOpen(true);
+      localStorage.setItem("@nasaspaceapps:manual", "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    const hasShownAlert = localStorage.getItem("@nasaspaceapps:manual");
+
+    if (!hasShownAlert) {
+      setOpen(true);
+      localStorage.setItem("@nasaspaceapps:manual", "true");
     }
   }, []);
 
@@ -29,9 +47,18 @@ export function View() {
     }
   }, [jobId]);
 
+  useEffect(() => {
+    handleFocus();
+  }, []);
+
   return (
     <div className="relative">
-      <Sidebar />
+      <Sidebar
+        onFocus={() => handleFocus()}
+        isOpen={open}
+        setIsOpen={setOpen}
+      />
+
       <iframe
         ref={iframeRef}
         src="https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net/"
@@ -39,6 +66,8 @@ export function View() {
       ></iframe>
 
       <OptionsBar />
+
+      <Manual isOpen={open} setIsOpen={setOpen} />
     </div>
   );
 }

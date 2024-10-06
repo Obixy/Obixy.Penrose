@@ -1,26 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { explanetsService } from "@/services/exoplanets";
-import { Manual } from "./manual";
 import { ExoplanetList } from "./exoplanet";
-import { Orbit, SidebarIcon } from "lucide-react";
+import { Cog, Orbit, SidebarIcon } from "lucide-react";
+import { useJobContext } from "@/lib/change-job-id";
 
-export function Sidebar() {
+interface SidebarProps {
+  onFocus: () => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["exoplanets"],
     queryFn: explanetsService.getAll,
   });
 
+  const { setExoplanet } = useJobContext();
+
   const [search, setSearch] = useState("");
   const [isVisible, setIsVisible] = useState(true);
+  const [, setMessage] = useState("");
 
   const filteredExoplanets = data?.filter((exoplanet) =>
     exoplanet.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleSidebar = () => {
-    setIsVisible((prev) => !prev);
-  };
+  useEffect(() => {
+    if (filteredExoplanets) {
+      const foundExoplanet = filteredExoplanets?.find(
+        (exoplanet) => exoplanet.name === "Proxima Centauri"
+      );
+
+      if (foundExoplanet) {
+        setExoplanet(foundExoplanet);
+      }
+
+      setExoplanet(filteredExoplanets?.[0]);
+    }
+  }, [filteredExoplanets, setExoplanet]);
+
+  useEffect(() => {
+    function handleMessage(e: any) {
+      if (e.origin !== "https://seu-dominio-do-iframe.com") {
+        return;
+      }
+
+      setMessage(e.data);
+    }
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
+  const sortedExoplanets = filteredExoplanets?.sort((a, b) => {
+    if (a.name === "Proxima Centauri") return -1;
+    if (b.name === "Proxima Centauri") return 1;
+    return 0;
+  });
+
+  function toggleSidebar() {
+    setIsVisible((prev) => {
+      const newVisibleState = !prev;
+
+      onFocus();
+      return newVisibleState;
+    });
+  }
 
   return isVisible ? (
     <div className="relative w-fit sm:fixed right-0 p-2 rounded-0 border-t sm:border sm:bottom-6 sm:left-6 border-b-white/10 border-t-white/20 !border-x-0 bg-black/50 backdrop-blur-md sm:rounded-xl flex justify-center gap-2">
@@ -47,7 +97,12 @@ export function Sidebar() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Manual />
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="group h-fit flex text-white items-center gap-2 rounded-full px-4 py-2 transition hover:bg-white/5"
+              >
+                <Cog className="w-5 h-5" />
+              </button>
 
               <button
                 onClick={toggleSidebar}
@@ -88,7 +143,7 @@ export function Sidebar() {
               <span className="sr-only">Loading...</span>
             </div>
           ) : (
-            filteredExoplanets?.map((exoplanet) => (
+            sortedExoplanets?.map((exoplanet) => (
               <ExoplanetList key={exoplanet.id} exoplanet={exoplanet} />
             ))
           )}
