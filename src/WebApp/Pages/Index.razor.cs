@@ -1,12 +1,26 @@
 using Microsoft.JSInterop;
-using Microsoft.Xna.Framework;
-using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using MonoGameApp = GameApp.Shared.GameApp;
 
 namespace WebApp.Pages
 {
     public partial class Index
     {
-        Game _game;
+        private MonoGameApp? _game;
+        private DotNetObjectReference<Index>? _objRef;
+        private DotNetObjectReference<Index> ObjRef => _objRef ??= DotNetObjectReference.Create(this);
+
+        protected override async Task OnInitializedAsync()
+        {
+            await JsRuntime.InvokeVoidAsync("interopHelper.storeObjectRef", ObjRef);
+        }
+
+        [JSInvokable]
+        public void EventListener(IDictionary<string, object> input)
+        {
+            _game?.UpdateWebInput(input);
+        }
 
         protected override void OnAfterRender(bool firstRender)
         {
@@ -24,7 +38,7 @@ namespace WebApp.Pages
             // init game
             if (_game == null)
             {
-                _game = new GameApp.Shared.GameApp();
+                _game = new MonoGameApp();
                 _game.Run();
             }
 

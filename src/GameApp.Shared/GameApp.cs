@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 
 namespace GameApp.Shared;
 
@@ -21,6 +22,10 @@ public class GameApp : Game
     {
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
+    }
+
+    public void UpdateWebInput(IDictionary<string, object> input)
+    {
     }
 
     /// <summary>
@@ -129,7 +134,7 @@ public class GameApp : Game
             throw new ArgumentNullException(nameof(starSource));
 
         starCamera.Draw(GraphicsDevice, spriteBatch, starSource);
-        
+
         spriteBatch.End();
 
         base.Draw(gameTime);
