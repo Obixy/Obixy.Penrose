@@ -11,6 +11,7 @@ public class GaiaExoplanetJob
     public string JobUrl { get; init; } = string.Empty;
     public StatusTypes Status { get; set; }
     public string Name { get; set; } = string.Empty;
+    public float? Parallax { get; set; }
 
     public enum StatusTypes
     {

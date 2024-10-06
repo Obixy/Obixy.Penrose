@@ -63,6 +63,7 @@ public class PenroseRepository
 
         await Update(exoplanetJob, cancellationToken);
     }
+
     public async Task Update(GaiaExoplanetJob exoplanetJob,  CancellationToken cancellationToken = default)
     {
         var container = await GetJobContainer(cancellationToken);
@@ -138,5 +139,4 @@ public class PenroseRepository
 
         return response?.FirstOrDefault();
     }
-
 }

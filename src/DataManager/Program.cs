@@ -92,6 +92,24 @@ app.MapGet("jobs/{sourceId}/status", async (
 .WithName("Jobs")
 .WithOpenApi();
 
+app.MapGet("exoplanets", async (
+    [FromServices] PenroseRepository penroseRepository,
+    CancellationToken cancellationToken
+) =>
+{
+    var gaiaJobs = await penroseRepository.GetJobs(cancellationToken: cancellationToken);
+
+    var response = gaiaJobs.Select(gaiaJob => new
+    {
+        gaiaJob.Name,
+        gaiaJob.Parallax,
+        gaiaJob.SourceId
+    });
+
+    return Results.Ok(response);
+})
+.WithName("Exoplanets")
+.WithOpenApi();
 
 using (var scope = app.Services.CreateScope())
 {
