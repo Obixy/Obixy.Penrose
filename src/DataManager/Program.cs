@@ -22,7 +22,7 @@ builder.Services.AddSingleton(sp =>
     });
 });
 
-builder.Services.AddHttpClient<GaiaRepository>((sp, options) =>
+builder.Services.AddHttpClient<GaiaTapRepository>((sp, options) =>
 {
     options.BaseAddress = new("https://gea.esac.esa.int/"); // TODO: Configure enviroment variable
 });
@@ -39,13 +39,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("jobs/status/{sourceId}", async (
+app.MapGet("jobs/{sourceId}/status", async (
     [FromRoute] string sourceId,
-    [FromServices] GaiaRepository gaiaRepository,
+    [FromServices] GaiaTapRepository gaiaRepository,
+    [FromServices] PenroseRepository penroseRepository,
     CancellationToken cancellationToken = default
 ) =>
 {
-    var gaiaJob = await gaiaRepository.GetJob(sourceId, cancellationToken);
+    var gaiaJob = await penroseRepository.GetJob(sourceId, cancellationToken);
 
     if (gaiaJob is null)
     {
@@ -63,10 +64,10 @@ app.MapGet("jobs/status/{sourceId}", async (
 
 using (var scope = app.Services.CreateScope())
 {
-    var gaiaRepository = scope.ServiceProvider.GetRequiredService<GaiaRepository>();
+    var penroseRepository = scope.ServiceProvider.GetRequiredService<PenroseRepository>();
     var jobsManager = scope.ServiceProvider.GetRequiredService<JobsManager>();
 
-    var runningJobs = await gaiaRepository.GetJobs(new([GaiaExoplanetJob.StatusTypes.PENDING]));
+    var runningJobs = await penroseRepository.GetJobs(new([GaiaExoplanetJob.StatusTypes.PENDING]));
 
     foreach (var jobInProgress in runningJobs)
         jobsManager.Add(jobInProgress.SourceId, jobInProgress.JobUrl);

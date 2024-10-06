@@ -21,7 +21,7 @@ public class JobBackgroudService : BackgroundService
     {
         while (true)
         {
-            var gaiaRepository = serviceProvider.GetRequiredService<GaiaRepository>();
+            var gaiaRepository = serviceProvider.GetRequiredService<GaiaTapRepository>();
 
             foreach (var (sourceId, jobUrl) in jobsManager.GetJobs())
             {
