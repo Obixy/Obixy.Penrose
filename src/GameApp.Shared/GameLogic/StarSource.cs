@@ -69,11 +69,11 @@ public class StarSource
 
                 this.stars = stars.Select(star => new Star(
                     float.Parse(star["source_id"]),
-                    float.Parse(star["ra"]),
-                    float.Parse(star["dec"]),
-                    float.Parse(star["parallax"]),
-                    BPRP: -1.530862f,
-                    GMag: -1.46f
+                    float.Parse(star["adjusted_ra"]),
+                    float.Parse(star["adjusted_dec"]),
+                    float.Parse(star["apparent_parallax"]),
+                    BPRP: float.Parse(star["bp_apparent"]) - float.Parse(star["rp_apparent"]),
+                    GMag: float.Parse(star["adjusted_mag"])
                 )).Take(1000).ToArray();
 
                 IsLoading = false;

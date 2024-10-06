@@ -68,7 +68,8 @@ app.MapPost("jobs", async (
         Name = request.ExoplanetName,
         JobUrl = jobUrl,
         SourceId = request.SourceId.Trim(),
-        Status = GaiaExoplanetJob.StatusTypes.PENDING
+        Status = GaiaExoplanetJob.StatusTypes.PENDING,
+        Parallax = request.ParallaxFromEarth
     };
 
     await penroseRepository.Store(gaiaJob, cancellationToken);
@@ -152,7 +153,7 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-public record JobPostRequest(string SourceId, string ExoplanetName);
+public record JobPostRequest(string SourceId, string ExoplanetName, float ParallaxFromEarth);
 public record JobStatusResponse(string Status);
 public record ExoplanetGetResponse(Guid Id, string Name, float Parallax);
 public record ErrorResponse(string Message);
