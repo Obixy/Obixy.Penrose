@@ -26,7 +26,9 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddHttpClient<GaiaTapRepository>((sp, options) =>
 {
-    options.BaseAddress = new("https://gea.esac.esa.int/"); // TODO: Configure enviroment variable
+    var configuration = sp.GetRequiredService<IConfiguration>();
+
+    options.BaseAddress = new(configuration.GetValue<string>("GaiaBaseUrl")!);
 });
 
 builder.Services.AddSingleton<PenroseRepository>();
@@ -148,6 +150,8 @@ using (var scope = app.Services.CreateScope())
 
     foreach (var jobInProgress in runningJobs)
         jobsManager.Add(jobInProgress.SourceId, jobInProgress.JobUrl);
+
+
 }
 
 app.Run();
