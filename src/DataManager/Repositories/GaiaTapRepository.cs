@@ -53,18 +53,15 @@ ORDER BY adjusted_mag ASC";
     //    AND s.phot_g_mean_mag + 5 * LOG10(ABS(1/s.parallax) / ABS(1/s.parallax - 1/p.parallax)) < 6.5";
 
     private readonly HttpClient httpClient;
-    private readonly JobsManager jobsManager;
 
     public GaiaTapRepository(
-        HttpClient httpClient,
-        JobsManager jobsManager
+        HttpClient httpClient
     )
     {
         this.httpClient = httpClient;
-        this.jobsManager = jobsManager;
     }
 
-    public async Task StartGaiaQueryAsync(string sourceId, CancellationToken cancellationToken = default)
+    public async Task<string> StartGaiaQueryAsync(string sourceId, CancellationToken cancellationToken = default)
     {
         var unsafeQuery = string.Format(queryBase, sourceId);
         var encodedQuery = HttpUtility.UrlEncode(unsafeQuery);
@@ -86,8 +83,7 @@ ORDER BY adjusted_mag ASC";
         var starPhaseResponse = await httpClient.PostAsync(startPhaseRequestUrl, startPhaseRequestContent, cancellationToken);
         starPhaseResponse.EnsureSuccessStatusCode();
 
-        var gaiaJob = new GaiaExoplanetJob { Id = Guid.NewGuid(), JobUrl = jobUrl, SourceId = sourceId, Status = GaiaExoplanetJob.StatusTypes.PENDING };
-
+        return jobUrl;
     }
 
     public async Task<IEnumerable<GaiaSource>> GetJobResults(GaiaExoplanetJob job, string jobUrl, CancellationToken cancellationToken = default)
@@ -95,38 +91,25 @@ ORDER BY adjusted_mag ASC";
         var response = await httpClient.GetAsync($"{jobUrl}/results/result", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
         var jsonResult = JObject.Parse(content);
 
-        var keys = new HashSet<string>();
+        var metadata = jsonResult["metadata"] ?? throw new InvalidOperationException("Metadata is not informed");
+        var keys = metadata.Select(MetaDataName).ToList();
 
-        var metadata = jsonResult["metadata"];
+        var data = jsonResult["data"] ?? throw new InvalidOperationException("Data is not informed");
 
-        foreach (var metadataValue in metadata)
-        {
-            keys.Add((metadataValue as JObject).GetValue("name").Value<string>());
-        }
-
-        var data = jsonResult["data"];
-
-        var dictionaries = new HashSet<GaiaSource>();
-
-        foreach (var dataValue in data)
-        {
-            var dictionary = new Dictionary<string, string>();
-            for (int i = 0; i < keys.Count; i++)
-            {
-                dictionary.Add(keys.ElementAt(i), dataValue[i]!.Value<string>()!);
-            }
-
-            dictionaries.Add(new GaiaSource
+        var dictionaries = data
+            .Select(dataValue => new GaiaSource
             {
                 Id = Guid.NewGuid(),
                 JobId = job.Id!.Value,
-                StarData = dictionary
+                StarData = keys.ToDictionary(
+                    key => key,
+                    key => dataValue[keys.IndexOf(key)]?.Value<string>() ?? string.Empty
+                )
             });
-        }
 
         return dictionaries;
     }
@@ -136,7 +119,7 @@ ORDER BY adjusted_mag ASC";
         var response = await httpClient.GetAsync(jobUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        string content = await response.Content.ReadAsStringAsync(cancellationToken);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
         var doc = XDocument.Parse(content);
         XNamespace ns = "http://www.ivoa.net/xml/UWS/v1.0";
@@ -144,4 +127,6 @@ ORDER BY adjusted_mag ASC";
 
         return Enum.Parse<GaiaExoplanetJob.StatusTypes>(phaseElement!.Value);
     }
+
+    private string MetaDataName(JToken metadataValue) => ((JObject)metadataValue).GetValue("name")?.Value<string>() ?? string.Empty;
 }

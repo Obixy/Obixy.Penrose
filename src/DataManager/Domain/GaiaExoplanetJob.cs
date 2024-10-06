@@ -6,10 +6,11 @@ public class GaiaExoplanetJob
 {
     [JsonProperty("id")]
     public Guid? Id { get; set; }
-    public string PartitionKey => Id?.ToString() ?? "";
-    public string SourceId { get; init; } = "";
-    public string JobUrl { get; init; } = "";
+    public string PartitionKey => Id?.ToString() ?? string.Empty;
+    public string SourceId { get; init; } = string.Empty;
+    public string JobUrl { get; init; } = string.Empty;
     public StatusTypes Status { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     public enum StatusTypes
     {

@@ -23,29 +23,40 @@ public class JobBackgroudService : BackgroundService
         {
             var gaiaRepository = serviceProvider.GetRequiredService<GaiaTapRepository>();
 
+            var scope = serviceProvider.CreateAsyncScope();
+            var penroseRepository = scope.ServiceProvider.GetRequiredService<PenroseRepository>();
+
             foreach (var (sourceId, jobUrl) in jobsManager.GetJobs())
             {
                 var status = await gaiaRepository.CheckJobStatus(jobUrl, stoppingToken);
 
                 if (status is GaiaExoplanetJob.StatusTypes.ERROR)
                 {
+                    var storedJob = await penroseRepository.GetJob(sourceId, stoppingToken)
+                        ?? throw new Exception($"StoredJob was null for: sourceId: {sourceId}, jobUrl:{jobUrl}");
+
+                    storedJob.Status = GaiaExoplanetJob.StatusTypes.ERROR;
+
                     jobsManager.Remove(sourceId);
+
+                    await penroseRepository.Update(storedJob, stoppingToken);
+
                     continue;
                 }
 
                 if (status is GaiaExoplanetJob.StatusTypes.COMPLETED)
                 {
-                    var storedJob = await gaiaRepository.GetJob(sourceId,stoppingToken);
-
-                    if (storedJob is null)
-                        throw new Exception($"StoredJob was null for: sourceId: {sourceId}, jobUrl:{jobUrl}");
+                    var storedJob = await penroseRepository.GetJob(sourceId,stoppingToken) 
+                        ?? throw new Exception($"StoredJob was null for: sourceId: {sourceId}, jobUrl:{jobUrl}");
 
                     var sourceBatch = await gaiaRepository.GetJobResults(storedJob, jobUrl, stoppingToken);
 
-                    await gaiaRepository.AddSourceBatch(sourceBatch, storedJob, stoppingToken);
+                    await penroseRepository.AddSourceBatch(sourceBatch, storedJob, stoppingToken);
                     jobsManager.Remove(sourceId);
                 }
             }
+
+            await scope.DisposeAsync();
 
             await Task.Delay(cicleTimeInSeconds, stoppingToken);
         }

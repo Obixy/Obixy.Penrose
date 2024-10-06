@@ -61,14 +61,18 @@ public class PenroseRepository
 
         exoplanetJob.Status = GaiaExoplanetJob.StatusTypes.COMPLETED;
 
+        await Update(exoplanetJob, cancellationToken);
+    }
+    public async Task Update(GaiaExoplanetJob exoplanetJob,  CancellationToken cancellationToken = default)
+    {
         var container = await GetJobContainer(cancellationToken);
+
         var updateResponse = await container.UpsertItemAsync(exoplanetJob, new PartitionKey(exoplanetJob.PartitionKey), cancellationToken: cancellationToken);
 
         if (updateResponse.StatusCode != System.Net.HttpStatusCode.OK)
         {
             throw new Exception($"Update failed with status code {updateResponse.StatusCode}");
         }
-
     }
 
     public async Task Store(GaiaExoplanetJob gaiaJob, CancellationToken cancellationToken)
