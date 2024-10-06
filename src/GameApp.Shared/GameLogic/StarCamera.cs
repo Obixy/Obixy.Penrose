@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SharedGameLogic.GameLogic;
 using System;
 
 namespace GameApp.Shared.GameLogic;
@@ -46,17 +47,12 @@ public class StarCamera
             Rotate(Right, -RotationSpeed * deltaTime);
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, StarSource starSource)
+    public void Draw(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, StarSource starSource, ClickDetectionGrid clickDetectionGrid)
     {
         var stars = starSource.GetStars();
 
         var viewMatrix = GetViewMatrix();
-        var perspectiveMatrix = Matrix.CreatePerspectiveFieldOfView(
-            MathHelper.ToRadians(60),
-            graphicsDevice.Viewport.AspectRatio,
-            0.1f,
-            100f
-        );
+        var perspectiveMatrix = GetPerspectiveMatrix(graphicsDevice);
 
         var viewProjection =
                 viewMatrix
@@ -66,6 +62,8 @@ public class StarCamera
         foreach (var star in stars)
         {
             Vector3 viewSpacePosition = Vector3.Transform(star.ThreeDPosition, viewMatrix);
+
+            Rectangle? drawBounds = default;
 
             // Only draw stars in front of the camera
             if (viewSpacePosition.Z < 0)
@@ -78,7 +76,7 @@ public class StarCamera
                     projectedPosition.Z > 0
                 )
                 {
-                    Vector2 screenPosition = new Vector2(
+                    var screenPosition = new Vector2(
                         (projectedPosition.X / projectedPosition.Z + 1) * graphicsDevice.Viewport.Width / 2,
                         (-projectedPosition.Y / projectedPosition.Z + 1) * graphicsDevice.Viewport.Height / 2
                     );
@@ -86,9 +84,11 @@ public class StarCamera
                     // Calculate size based on distance (stars further away appear smaller)
                     float size = MathHelper.Clamp(5f / -viewSpacePosition.Z, 0.1f, 5f);
 
-                    star.Draw(spriteBatch, screenPosition, size);
+                    drawBounds = star.Draw(spriteBatch, screenPosition, size);
                 }
             }
+
+            clickDetectionGrid.UpdatePosition(star, drawBounds);
         }
     }
 
@@ -113,5 +113,18 @@ public class StarCamera
                     0.1f,
                     100f
             );
+    }
+
+    public Matrix GetProjectionMatrix(GraphicsDevice graphicsDevice)
+    {
+        var viewMatrix = GetViewMatrix();
+        var perspectiveMatrix = GetPerspectiveMatrix(graphicsDevice);
+
+        var viewProjection =
+                viewMatrix
+            * perspectiveMatrix
+            ;
+
+        return viewProjection;
     }
 }

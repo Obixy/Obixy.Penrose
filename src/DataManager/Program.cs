@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(opt => opt.AddDefaultPolicy(corsPol=> corsPol.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
 builder.Services.AddSingleton<JobsManager>();
 
 builder.Services.AddSingleton(sp =>
@@ -39,6 +40,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 

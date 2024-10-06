@@ -1,98 +1,89 @@
 ﻿<!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&display=swap"
+          rel="stylesheet" />
 
     <title>3D Engine - Obixy</title>
     <base href="./" />
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="WebApp.styles.css" rel="stylesheet" />
-  </head>
+</head>
 
-  <body>
+<body>
     <div id="app">
-      <div
-        id="loading"
-        style="
+        <div id="loading"
+             style="
           display: table-cell;
           margin: auto;
           width: 100vw;
           height: 100vh;
           vertical-align: middle;
           background: #33348e;
-        "
-      >
-        <div
-          style="
+        ">
+            <div style="
             display: block;
             margin: auto;
             width: 9em;
             color: white;
             font-family: 'Epilogue', sans-serif;
-          "
-        >
-          <div style="text-align: center; font-size: 0.85em">
-            Made with<br /><a href="https://obixy.com.br"
-              ><img src="obixy-nasa.png" border="0" alt="Kni"
-            /></a>
-          </div>
-          <div style="text-align: center; font-size: 1.8em">
-            loading&nbsp;<marquee style="width: 0.9em; vertical-align: bottom"
-              >.&nbsp;.&nbsp;.&nbsp;&nbsp;&nbsp;</marquee
-            >
-          </div>
+          ">
+
+                <div style="text-align: center; font-size: 0.85em">
+                    Project developed by <br /><a href="https://obixy.com.br">
+                        <img src="obixy-nasa.png" style="width: 100px; height: 100px;" border="0" alt="Kni" />
+                    </a>
+
+                    <h2>Obixy&nbsp;<marquee style="width: 0.9em; vertical-align: bottom">.&nbsp;.&nbsp;.&nbsp;&nbsp;&nbsp;</marquee></h2>
+                </div>
+
+            </div>
         </div>
-      </div>
     </div>
 
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script type="module">
-      import { BrotliDecode } from "./js/decode.min.js";
-      // Set this to enable Brotli (.br) decompression on static webServers
-      // that don't support content compression and http://.
-      var enableBrotliDecompression = false;
-      Blazor.start({
-        loadBootResource: function (type, name, defaultUri, integrity) {
-          if (
-            enableBrotliDecompression === true &&
-            type !== "dotnetjs" &&
-            location.hostname !== "localhost"
-          ) {
-            return (async function () {
-              const response = await fetch(defaultUri + ".br", {
-                cache: "no-cache",
-              });
-              if (!response.ok) throw new Error(response.statusText);
-              const originalResponseBuffer = await response.arrayBuffer();
-              const originalResponseArray = new Int8Array(
-                originalResponseBuffer
-              );
-              const contentType =
-                type === "dotnetwasm"
-                  ? "application/wasm"
-                  : "application/octet-stream";
-              const decompressedResponseArray = BrotliDecode(
-                originalResponseArray
-              );
-              return new Response(decompressedResponseArray, {
-                headers: { "content-type": contentType },
-              });
-            })();
-          }
-        },
-      });
+        import { BrotliDecode } from "./js/decode.min.js";
+        // Set this to enable Brotli (.br) decompression on static webServers
+        // that don't support content compression and http://.
+        var enableBrotliDecompression = false;
+        Blazor.start({
+            loadBootResource: function (type, name, defaultUri, integrity) {
+                if (
+                    enableBrotliDecompression === true &&
+                    type !== "dotnetjs" &&
+                    location.hostname !== "localhost"
+                ) {
+                    return (async function () {
+                        const response = await fetch(defaultUri + ".br", {
+                            cache: "no-cache",
+                        });
+                        if (!response.ok) throw new Error(response.statusText);
+                        const originalResponseBuffer = await response.arrayBuffer();
+                        const originalResponseArray = new Int8Array(
+                            originalResponseBuffer
+                        );
+                        const contentType =
+                            type === "dotnetwasm"
+                                ? "application/wasm"
+                                : "application/octet-stream";
+                        const decompressedResponseArray = BrotliDecode(
+                            originalResponseArray
+                        );
+                        return new Response(decompressedResponseArray, {
+                            headers: { "content-type": contentType },
+                        });
+                    })();
+                }
+            },
+        });
     </script>
 
     <script src="_content/nkast.Wasm.Dom/js/JSObject.8.0.2.js"></script>
@@ -107,52 +98,52 @@
     <script src="_content/nkast.Wasm.Audio/js/Audio.8.0.2.js"></script>
 
     <script>
-      function tickJS() {
-        window.theInstance.invokeMethod("TickDotNet");
-        window.requestAnimationFrame(tickJS);
-      }
-
-      window.initRenderJS = (instance) => {
-        window.theInstance = instance;
-
-        // set initial canvas size
-        var canvas = document.getElementById("theCanvas");
-        var holder = document.getElementById("canvasHolder");
-        canvas.width = holder.clientWidth;
-        canvas.height = holder.clientHeight;
-        // disable context menu on right click
-        canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        // begin game loop
-        window.requestAnimationFrame(tickJS);
-      };
-
-      window.onkeydown = function (event) {
-        // Prevent Arrows Keys and Spacebar scrolling the outer page
-        // when running inside an iframe. e.g: itch.io embedding.
-        if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)
-          event.preventDefault();
-      };
-      window.onmousewheel = function (event) {
-        // Prevent Mousewheel scrolling the outer page
-        // when running inside an iframe. e.g: itch.io embedding.
-        event.preventDefault();
-      };
-
-      window.interopHelper = {
-        storeObjectRef: function (dotnetHelper) {
-          this.dotnetHelper = dotnetHelper;
-        },
-      };
-
-      window.addEventListener("message", (event) => {
-        if (window.interopHelper.dotnetHelper) {
-          window.interopHelper.dotnetHelper.invokeMethodAsync(
-            "EventListener",
-            event.data
-          );
+        function tickJS() {
+            window.theInstance.invokeMethod("TickDotNet");
+            window.requestAnimationFrame(tickJS);
         }
-      });
+
+        window.initRenderJS = (instance) => {
+            window.theInstance = instance;
+
+            // set initial canvas size
+            var canvas = document.getElementById("theCanvas");
+            var holder = document.getElementById("canvasHolder");
+            canvas.width = holder.clientWidth;
+            canvas.height = holder.clientHeight;
+            // disable context menu on right click
+            canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+            // begin game loop
+            window.requestAnimationFrame(tickJS);
+        };
+
+        window.onkeydown = function (event) {
+            // Prevent Arrows Keys and Spacebar scrolling the outer page
+            // when running inside an iframe. e.g: itch.io embedding.
+            if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)
+                event.preventDefault();
+        };
+        window.onmousewheel = function (event) {
+            // Prevent Mousewheel scrolling the outer page
+            // when running inside an iframe. e.g: itch.io embedding.
+            event.preventDefault();
+        };
+
+        window.interopHelper = {
+            storeObjectRef: function (dotnetHelper) {
+                this.dotnetHelper = dotnetHelper;
+            },
+        };
+
+        window.addEventListener("message", (event) => {
+            if (window.interopHelper.dotnetHelper) {
+                window.interopHelper.dotnetHelper.invokeMethodAsync(
+                    "EventListener",
+                    event.data
+                );
+            }
+        });
     </script>
-  </body>
+</body>
 </html>

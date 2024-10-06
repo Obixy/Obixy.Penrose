@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SharedGameLogic.GameLogic;
 using System;
 using System.Collections.Generic;
 
@@ -17,6 +18,7 @@ public class GameApp : Game
     StarCamera? starCamera;
     ThreeDDebugGrid? threeDDebugGrid;
     StarSource? starSource;
+    ClickDetectionGrid? clickDetectionGrid;
 
     public GameApp()
     {
@@ -39,6 +41,7 @@ public class GameApp : Game
         starCamera = new StarCamera(Vector3.Zero, Vector3.Forward, Vector3.Up);
         threeDDebugGrid = new ThreeDDebugGrid();
         starSource = new StarSource();
+        clickDetectionGrid = new ClickDetectionGrid();
 
         base.Initialize();
 
@@ -62,10 +65,8 @@ public class GameApp : Game
 
         if (threeDDebugGrid is null)
             throw new ArgumentNullException(nameof(threeDDebugGrid));
-
+         
         threeDDebugGrid.LoadContent(GraphicsDevice, starCamera);
-
-        //_ = Content.Load<Effect>("NewEffect");
     }
 
     /// <summary>
@@ -77,6 +78,8 @@ public class GameApp : Game
         // TODO: Unload any non ContentManager content here
     }
 
+
+    MouseState previousMouseState;
     /// <summary>
     /// Allows the game to run logic such as updating the world,
     /// checking for collisions, gathering input, and playing audio.
@@ -84,7 +87,9 @@ public class GameApp : Game
     /// <param name="gameTime">Provides a snapshot of timing values.</param>
     protected override void Update(GameTime gameTime)
     {
-        MouseState mouseState = Mouse.GetState();
+        this.IsMouseVisible = true;
+
+        MouseState currentMouseState = Mouse.GetState();
         KeyboardState keyboardState = Keyboard.GetState();
         GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
 
@@ -96,6 +101,11 @@ public class GameApp : Game
             catch (PlatformNotSupportedException) { /* ignore */ }
         }
 
+        if (clickDetectionGrid is null)
+            throw new ArgumentNullException(nameof(clickDetectionGrid));
+
+        clickDetectionGrid.Update(currentMouseState, previousMouseState);
+
         if (starCamera is null)
             throw new ArgumentNullException(nameof(starCamera));
 
@@ -105,6 +115,8 @@ public class GameApp : Game
             throw new ArgumentNullException(nameof(threeDDebugGrid));
 
         threeDDebugGrid.Update(starCamera, gameTime);
+
+        previousMouseState = currentMouseState;
 
         base.Update(gameTime);
     }
@@ -122,18 +134,21 @@ public class GameApp : Game
 
         threeDDebugGrid.Draw(GraphicsDevice);
 
+        if (starCamera is null)
+            throw new ArgumentNullException(nameof(starCamera));
+
         if (spriteBatch is null)
             throw new ArgumentNullException(nameof(spriteBatch));
 
         spriteBatch.Begin();
 
-        if (starCamera is null)
-            throw new ArgumentNullException(nameof(starCamera));
-
         if (starSource is null)
             throw new ArgumentNullException(nameof(starSource));
 
-        starCamera.Draw(GraphicsDevice, spriteBatch, starSource);
+        if (clickDetectionGrid is null)
+            throw new ArgumentNullException(nameof(clickDetectionGrid));
+
+        starCamera.Draw(GraphicsDevice, spriteBatch, starSource, clickDetectionGrid);
 
         spriteBatch.End();
 
