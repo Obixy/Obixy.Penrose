@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace GameApp.Shared.GameLogic;
 
@@ -46,6 +47,23 @@ public class Star
     );
     public double AbsoluteMagnitude { get; set; }
     public Texture2D? Texture { get; set; }
+
+    private Vector3? _oringinalColor;
+
+    public void OnClick()
+    {
+        if (_oringinalColor == null)
+        {
+            _oringinalColor = Color;
+            Color = new Vector3(Microsoft.Xna.Framework.Color.LightGreen.R, Microsoft.Xna.Framework.Color.LightGreen.G, Microsoft.Xna.Framework.Color.LightGreen.B);
+        }
+        else
+        {
+            Color = _oringinalColor!.Value;
+            _oringinalColor = null;
+        }
+
+    }
 
     private void CalculateThreeDProjectedPosition(float ra, float dec, float parallax)
     {
@@ -123,10 +141,12 @@ public class Star
         AbsoluteMagnitude = apparentMagnitude - 5 * Math.Log10(distancePc) + 5;
     }
 
-    public void Draw(SpriteBatch spriteBatch, Vector2 screenPosition, float size)
+    public Rectangle Draw(SpriteBatch spriteBatch, Vector2 screenPosition, float size)
     {
         if (Texture is null)
             throw new ArgumentNullException(nameof(Texture));
+
+        var drawRectangle = CenterRectangleAtPoint(ScaleRectangle(Texture.Bounds, Math.Max(size, 1)), screenPosition /*- new Vector2(Texture.Width / 2, Texture.Height / 2)*/);
 
         spriteBatch.Draw(
             Texture,
@@ -134,10 +154,41 @@ public class Star
             null,
             ColorMask,
             0f,
-            new Vector2(8 / 2, 8 / 2),//new Vector2(Texture.Width / 2, Texture.Height / 2),
-            size / 8,//size / Texture.Width,
+            new Vector2(Texture.Width / 2, Texture.Height / 2),
+            size,
             SpriteEffects.None,
             0f
         );
+
+        return drawRectangle;
     }
+
+    public static Rectangle ScaleRectangle(Rectangle rect, float scale)
+    {
+        // Calculate the new width and height
+        int newWidth = (int)(rect.Width * scale);
+        int newHeight = (int)(rect.Height * scale);
+
+        // Adjust X and Y to keep the rectangle centered
+        int newX = rect.X - (newWidth - rect.Width) / 2;
+        int newY = rect.Y - (newHeight - rect.Height) / 2;
+
+        // Return the new scaled rectangle
+        return new Rectangle(newX, newY, newWidth, newHeight);
+    }
+
+    public static Rectangle CenterRectangleAtPoint(Rectangle rect, Vector2 newCenter)
+    {
+        // Calculate the new X and Y by centering the rectangle at the new point
+        int newX = (int)(newCenter.X - rect.Width / 2);
+        int newY = (int)(newCenter.Y - rect.Height / 2);
+
+        // Return the new centered rectangle
+        return new Rectangle(newX, newY, rect.Width, rect.Height);
+    }
+}
+
+public class DrawParameters
+{
+    public Rectangle DrawBounds { get; set; }
 }

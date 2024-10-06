@@ -9,6 +9,7 @@
     <Import_RootNamespace>SharedGameLogic</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\GameApp.Shared\GameLogic\ClickDetectionGrid.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameLogic\Star.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameLogic\StarCamera.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameLogic\StarSource.cs" />

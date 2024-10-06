@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<!-- Must enable nulability -->
@@ -57,6 +57,10 @@
 		<KniContentReference Include="..\GameApp.Shared.Content\GameApp.Shared.Content.mgcb">
 			<Link>Content\GameApp.Shared.Content.mgcb</Link>
 		</KniContentReference>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<None Include="Content\DebugAppContent.mgcb" />
 	</ItemGroup>
 
 	<Import Project="..\GameApp.Shared\SharedGameLogic.Shared.projitems" Label="Shared" />

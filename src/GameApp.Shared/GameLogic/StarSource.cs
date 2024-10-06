@@ -14,8 +14,6 @@ public class StarSource
 
     public StarSource()
     {
- 
-
         stars = [
             new Star(
                 SourceId: 160886283751041408   ,
@@ -50,20 +48,20 @@ public class StarSource
                 GMag: 2.1833525f
             ),
             new Star(
-                SourceId: 2947050466531873024  , // SIRIUS
-                RightAscension: 101.28662552099249f    ,
-                Declination: -16.720932526023173f,
-                Parallax: 374.48958852876103f,
-                BPRP: -0.27842712f,
-                GMag: 8.524133f
+                SourceId: 2947050466531873024  , // SIRIUS // S3VV000636
+                RightAscension: 101.28715515137f    ,
+                Declination: -16.71611595154f,
+                Parallax: 379.2200f,
+                BPRP: -1.530862f,
+                GMag: -1.46f
             ),
             new Star(
                 SourceId: 3322763588417036032  , // BETELGEUSE
                 RightAscension: 88.8572254952028f      ,
                 Declination: 7.227819034090208f,
                 Parallax: 0.5363052504330691f,
-                BPRP: 1.1323872f,
-                GMag: 13.313011f
+                BPRP: 1.6358423f,
+                GMag: 0.50f
             ),
             new Star(
                 SourceId: 4038055447778237312  ,
@@ -118,7 +116,7 @@ public class StarSource
         _textureCache = new Dictionary<double, Texture2D>();
     }
 
-    private const int TextureSize = 64;
+    private const int TextureSize = 16;
     public void LoadContent(GraphicsDevice graphicsDevice)
     {
         foreach (var star in stars)
@@ -135,39 +133,59 @@ public class StarSource
         }
     }
 
-    public static Texture2D CreateStarTexture(GraphicsDevice graphicsDevice, int size, Color color, double magnitude)
+    public static Texture2D CreateStarTexture(GraphicsDevice graphicsDevice, int textureSize, Color color, double magnitude)
     {
-        Texture2D texture = new Texture2D(graphicsDevice, size, size);
-        Color[] colorData = new Color[size * size];
+        // Calculate the scaled texture size based on magnitude
+        var scaledSize = (int)CalculateScaledSize(magnitude) * textureSize;
 
-        float radius = size / 2f;
-        float centerX = radius;
-        float centerY = radius;
+        // Create a new texture with the scaled size
+        Texture2D texture = new Texture2D(graphicsDevice, scaledSize, scaledSize);
 
-        // Adjust brightness based on magnitude (lower magnitude = brighter star)
-        var brightness = Math.Max(0, 1 - (magnitude / 6d)); // Assuming magnitude range of 0-6
-        color = Color.Lerp(Color.Black, color, (float)brightness);
+        // Create an array to hold the color data for each pixel
+        Color[] colorData = new Color[scaledSize * scaledSize];
 
-        for (int x = 0; x < size; x++)
+        // Calculate the center of the texture
+        Vector2 center = new Vector2(scaledSize / 2f);
+
+        // Fill the texture with the star pattern
+        for (int y = 0; y < scaledSize; y++)
         {
-            for (int y = 0; y < size; y++)
+            for (int x = 0; x < scaledSize; x++)
             {
-                float distance = Vector2.Distance(new Vector2(x, y), new Vector2(centerX, centerY));
-                if (distance < radius)
-                {
-                    float alpha = 1 - (distance / radius);
-                    alpha = (float)Math.Pow(alpha, 0.5); // Soften the edge
-                    colorData[y * size + x] = Color.Lerp(Color.Transparent, color, alpha);
-                }
-                else
-                {
-                    colorData[y * size + x] = Color.Transparent;
-                }
+                Vector2 position = new Vector2(x, y);
+                float distance = Vector2.Distance(position, center);
+                float radius = scaledSize / 2f;
+
+                // Create a circular gradient
+                float alpha = MathHelper.Clamp(1f - (distance / radius), 0f, 1f);
+                alpha = (float)Math.Pow(alpha, 2); // Square the alpha for a smoother falloff
+
+                colorData[y * scaledSize + x] = color * alpha;
             }
         }
 
+        // Set the texture data
         texture.SetData(colorData);
+
         return texture;
+    }
+
+    // Constants for scaling
+    private const float MinScale = 0.1f;  // Minimum scale for dim stars
+    private const float MaxScale = 3.0f;  // Maximum scale for bright stars
+    private const float MinMagnitude = -10f;  // Brighter stars (e.g., supergiants)
+    private const float MaxMagnitude = 15f;   // Dimmer stars (e.g., faint dwarfs)
+
+    public static float CalculateScaledSize(double absoluteMagnitude)
+    {
+        // Clamp the magnitude within a reasonable range
+        float clampedMagnitude = MathHelper.Clamp((float)absoluteMagnitude, MinMagnitude, MaxMagnitude);
+
+        // Map magnitude to a scale using linear interpolation
+        float scale = MathHelper.Lerp(MaxScale, MinScale,
+            (clampedMagnitude - MinMagnitude) / (MaxMagnitude - MinMagnitude));
+
+        return scale;
     }
 
     public IEnumerable<Star> GetStars()
