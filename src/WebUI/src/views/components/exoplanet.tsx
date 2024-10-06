@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ExoplanetProps } from "@/types";
 import { useUnitMeasure } from "@/lib/change-unity-measure";
 import { useJobContext } from "@/lib/change-job-id";
@@ -10,7 +11,11 @@ export function ExoplanetList({ exoplanet }: ExoplanetListProps) {
   const { unitMeasure, convertValue } = useUnitMeasure();
   const { exoplanet: selectedExoplanet, setExoplanet } = useJobContext();
 
-  const isSelected = selectedExoplanet?.name === exoplanet.name;
+  const [isSelected, setIsSelected] = useState(false);
+
+  useEffect(() => {
+    setIsSelected(selectedExoplanet?.name === exoplanet.name);
+  }, [selectedExoplanet, exoplanet.name]);
 
   const parallaxValue = exoplanet.parallax;
   const convertedValue = convertValue(parallaxValue, "mas", unitMeasure);
@@ -18,9 +23,11 @@ export function ExoplanetList({ exoplanet }: ExoplanetListProps) {
   return (
     <button
       key={exoplanet.name}
-      className={`"w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative ${
-        isSelected ? "bg-blue-500 text-white" : "bg-white text-black"
-      }"`}
+      className={`w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative ${
+        isSelected
+          ? "bg-blue-500 hover:bg-blue-500/90 text-white"
+          : "bg-white text-black"
+      }`}
       onClick={() => {
         setExoplanet(exoplanet);
       }}

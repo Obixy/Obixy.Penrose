@@ -43,18 +43,10 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
   );
 
   useEffect(() => {
-    if (filteredExoplanets) {
-      const foundExoplanet = filteredExoplanets?.find(
-        (exoplanet) => exoplanet.name === "Proxima Centauri"
-      );
-
-      if (foundExoplanet) {
-        setExoplanet(foundExoplanet);
-      }
-
-      setExoplanet(filteredExoplanets?.[0]);
+    if (data) {
+      setExoplanet(data[0]);
     }
-  }, [filteredExoplanets, setExoplanet]);
+  }, [data, setExoplanet]);
 
   const sortedExoplanets = filteredExoplanets?.sort((a, b) => {
     if (a.name === "Proxima Centauri") return -1;
