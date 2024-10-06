@@ -12,7 +12,6 @@ export function View() {
         iframe.focus();
       };
     }
-
   }, []);
 
   return (
@@ -25,7 +24,7 @@ export function View() {
         className="w-full h-screen object-cover"
       ></iframe>
 
-      <OptionsBar onUnitChange={(unit: number) => console.log(unit)} />
+      <OptionsBar onUnitChange={(unit: string) => console.log(unit)} />
     </div>
   );
 }

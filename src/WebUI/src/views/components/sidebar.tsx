@@ -38,7 +38,7 @@ export function Sidebar() {
         <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pb-28 pr-2.5 relative">
           <button className="w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative">
             <img
-              src="./public/planet.png"
+              src="./planet.png"
               className="absolute top-2 right-2 w-24"
             />
             <p className="max-w-[60%] text-start text-white text-2xl">
@@ -56,7 +56,7 @@ export function Sidebar() {
               className="absolute -top-2 -right-2 w-32"
             />
             <p className="max-w-[60%] text-start text-white text-2xl">
-            TRAPPIST-1e
+              TRAPPIST-1e
             </p>
 
             <span className="ring-1 ring-white/10 text-gray-300 rounded-full px-2 py-1">
