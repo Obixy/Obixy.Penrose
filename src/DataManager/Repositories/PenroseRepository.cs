@@ -1,5 +1,8 @@
 ﻿using DataManager.Domain;
 using Microsoft.Azure.Cosmos;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DataManager.Repositories;
@@ -94,7 +97,7 @@ public class PenroseRepository
     {
         var container = await GetJobContainer(cancellationToken);
 
-        var queryBuilder = new StringBuilder("SELECT * FROM gaiaJobs gj");
+        var queryBuilder = new StringBuilder("SELECT * FROM gj");
 
         if (jobGetterFilters is not null)
         {
@@ -127,7 +130,7 @@ public class PenroseRepository
     {
         var container = await GetJobContainer(cancellationToken);
 
-        var query = new QueryDefinition("SELECT TOP 1 * FROM gaiaJobs gj WHERE gj.SourceId = @sourceId")
+        var query = new QueryDefinition("SELECT TOP 1 * FROM gj WHERE gj.SourceId = @sourceId")
             .WithParameter("@sourceId", sourceId);
 
         using var resultSetIterator = container.GetItemQueryIterator<GaiaExoplanetJob>(query);
@@ -138,5 +141,33 @@ public class PenroseRepository
             response = await resultSetIterator.ReadNextAsync(cancellationToken);
 
         return response?.FirstOrDefault();
+    }
+
+    public async IAsyncEnumerable<IEnumerable<GaiaSource>> GetExplanetStars(Guid jobId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var container = await GetSourceContainer(cancellationToken);
+
+        var countQuery = new QueryDefinition("SELECT VALUE COUNT(gs.JobId) FROM gs WHERE gs.JobId = @jobId")
+            .WithParameter("@jobId", jobId);
+
+        using var resultSetCountIterator = container.GetItemQueryIterator<int>(countQuery);
+        var count = (await resultSetCountIterator.ReadNextAsync(cancellationToken)).First();
+
+        const int itensPerIteration = 1000;
+        var iterationQuantity = (double)count / itensPerIteration;
+
+        for (int i = 0; i < Math.Ceiling(iterationQuantity); i++)
+        {
+            var queryString = $"SELECT * FROM gs g WHERE g.JobId = @jobId ORDER BY g.JobId OFFSET {i * itensPerIteration} LIMIT {itensPerIteration}";
+
+            var query = new QueryDefinition(queryString)
+           .WithParameter("@jobId", jobId);
+
+            using var resultSetIterator = container.GetItemQueryIterator<GaiaSource>(query);
+
+            while (resultSetIterator.HasMoreResults)
+                yield return await resultSetIterator.ReadNextAsync(cancellationToken); 
+        }
+      
     }
 }
