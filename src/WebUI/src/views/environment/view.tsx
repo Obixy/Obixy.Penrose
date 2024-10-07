@@ -52,14 +52,11 @@ export function View() {
     const iframe = iframeRef.current;
 
     if (iframe) {
-      iframe.contentWindow?.postMessage(
-        {
-          jobId: exoplanet?.id,
-        },
-        "*"
-      );
+      iframe.contentWindow?.postMessage({
+        jobId: exoplanet?.id,
+      });
     }
-  }, [exoplanet?.id]);
+  }, [exoplanet]);
 
   useEffect(() => {
     handleFocus();

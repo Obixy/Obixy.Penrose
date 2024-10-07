@@ -36,8 +36,6 @@ export function Sidebar({ onFocus, isOpen, setIsOpen, iframe }: SidebarProps) {
     enabled: !!exoplanet,
   });
 
-  console.log(constellations);
-
   const [search, setSearch] = useState("");
   const [isVisible, setIsVisible] = useState(true);
 
@@ -182,6 +180,28 @@ export function Sidebar({ onFocus, isOpen, setIsOpen, iframe }: SidebarProps) {
                 )}
               </div>
             </ShimmerButton>
+
+            {constructionMode ? (
+              <p className="animate-slidein200 opacity-0 text-base text-gray-400 text-center px-4 py-4">
+                Press{"  "}
+                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 border-gray-400 text-[10px] font-medium text-muted-foreground opacity-100">
+                  <span className="text-xs">Ctrl</span> +{" "}
+                  <span className="text-xs">Shift</span> + S
+                </kbd>
+                {"  "}
+                to save the current constellation
+              </p>
+            ) : (
+              <p className="animate-slidein200 opacity-0 text-base text-gray-400 text-center px-4 py-4">
+                Press{"  "}
+                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 border-gray-400 text-[10px] font-medium text-muted-foreground opacity-100">
+                  <span className="text-xs">Ctrl</span> +{" "}
+                  <span className="text-xs">Shift</span> + S
+                </kbd>
+                {"  "}
+                to save the current constellation
+              </p>
+            )}
           </TabsContent>
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-1/3 bg-gradient-to-t from-current hidden sm:flex"></div>

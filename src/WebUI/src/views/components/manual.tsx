@@ -22,16 +22,7 @@ export function Manual({ isOpen, setIsOpen }: ManualProps) {
   const [focusIndex, setFocusIndex] = useState(0);
 
   const buttons = useMemo(
-    () => [
-      "w-btn",
-      "a-btn",
-      "s-btn",
-      "d-btn",
-      "up-btn",
-      "left-btn",
-      "down-btn",
-      "right-btn",
-    ],
+    () => ["up-btn", "left-btn", "down-btn", "right-btn"],
     []
   );
 
