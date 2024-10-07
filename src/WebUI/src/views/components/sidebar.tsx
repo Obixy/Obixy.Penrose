@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { explanetsService } from "@/services/exoplanets";
 import { ExoplanetList } from "./exoplanet";
-import { Cog, Orbit, SidebarIcon, Sparkles } from "lucide-react";
+import { Cog, Orbit, PencilRuler, SidebarIcon, Sparkles } from "lucide-react";
 import { useJobContext } from "@/lib/change-job-id";
 
 import {
@@ -27,6 +27,7 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
   });
 
   const { exoplanet, setExoplanet } = useJobContext();
+  const [constructionMode, setConstructionMode] = useState(false);
 
   const { data: constellations } = useQuery({
     queryKey: ["constellations"],
@@ -150,10 +151,22 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
           </TabsContent>
 
           <TabsContent value="constellations">
-            <ShimmerButton className="w-full shadow-xl">
+            <ShimmerButton
+              className="w-full shadow-xl"
+              onClick={() => setConstructionMode((prev) => !prev)}
+            >
               <div className="w-full flex items-center justify-between text-gray-200 font-light gap-2 rounded-xl bg-white/10 px-6 py-5 transition hover:bg-white/20 active:scale-95 active:bg-white/10 disabled:opacity-50">
-                Create new constellation
-                <Sparkles className="w-5 h-5" />
+                {constructionMode ? (
+                  <span>Construction Mode</span>
+                ) : (
+                  <span>View Mode</span>
+                )}
+
+                {constructionMode ? (
+                  <PencilRuler className="w-5 h-5" />
+                ) : (
+                  <Sparkles className="w-5 h-5" />
+                )}
               </div>
             </ShimmerButton>
           </TabsContent>
