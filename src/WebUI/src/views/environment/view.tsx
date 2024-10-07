@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from "react";
 import { useJobContext } from "@/lib/change-job-id";
 import { OptionsBar, Sidebar } from "../components";
 import { Manual } from "../components/manual";
-import { MessageDisplay } from "../components/message-display";
 
 export function View() {
   const { exoplanet } = useJobContext();
@@ -25,21 +24,6 @@ export function View() {
   }, []);
 
   useEffect(() => {
-    function handleMessage(e: any) {
-      if (
-        e.origin !==
-        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net"
-      ) {
-        return;
-      }
-
-      console.log(e.data);
-    }
-
-    window.addEventListener("message", handleMessage);
-  }, []);
-
-  useEffect(() => {
     const hasShownAlert = localStorage.getItem("@nasaspaceapps:manual");
 
     if (!hasShownAlert) {
@@ -52,14 +36,11 @@ export function View() {
     const iframe = iframeRef.current;
 
     if (iframe) {
-      iframe.contentWindow?.postMessage(
-        {
-          jobId: exoplanet?.id,
-        },
-        "*"
-      );
+      iframe.contentWindow?.postMessage({
+        jobId: exoplanet?.id,
+      });
     }
-  }, [exoplanet?.id]);
+  }, [exoplanet]);
 
   useEffect(() => {
     handleFocus();
@@ -81,8 +62,6 @@ export function View() {
       ></iframe>
 
       <OptionsBar />
-
-      <MessageDisplay />
 
       <Manual isOpen={open} setIsOpen={setOpen} />
     </div>

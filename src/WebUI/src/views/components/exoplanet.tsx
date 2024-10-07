@@ -20,8 +20,6 @@ export function ExoplanetList({ exoplanet }: ExoplanetListProps) {
   const parallaxValue = exoplanet.parallax;
   const convertedValue = convertValue(parallaxValue, "mas", unitMeasure);
 
-  console.log(exoplanet);
-
   return (
     <button
       key={exoplanet.name}
