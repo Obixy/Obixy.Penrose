@@ -18,9 +18,10 @@ interface SidebarProps {
   onFocus: () => void;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  iframe: HTMLIFrameElement | null;
 }
 
-export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
+export function Sidebar({ onFocus, isOpen, setIsOpen, iframe }: SidebarProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["exoplanets"],
     queryFn: explanetsService.getAll,
@@ -55,6 +56,18 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
     if (b.name === "Proxima Centauri") return 1;
     return 0;
   });
+
+  useEffect(() => {
+    if (iframe) {
+      iframe.contentWindow?.postMessage(
+        {
+          jobId: exoplanet?.id,
+          isBuildingConstellation: constructionMode,
+        },
+        "*"
+      );
+    }
+  }, [constructionMode, exoplanet?.id, iframe]);
 
   function toggleSidebar() {
     setIsVisible((prev) => {

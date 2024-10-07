@@ -71,6 +71,7 @@ export function View() {
         onFocus={() => handleFocus()}
         isOpen={open}
         setIsOpen={setOpen}
+        iframe={iframeRef.current}
       />
 
       <iframe
