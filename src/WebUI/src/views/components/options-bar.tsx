@@ -53,12 +53,14 @@ export function OptionsBar() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <button
-        type="button"
-        className="group flex items-center gap-2 rounded-full px-4 py-2 transition bg-white text-black"
-      >
-        {exoplanet?.name}
-      </button>
+      {exoplanet && (
+        <button
+          type="button"
+          className="group flex items-center gap-2 rounded-full px-4 py-2 transition bg-white text-black"
+        >
+          {exoplanet?.name}
+        </button>
+      )}
     </div>
   );
 }

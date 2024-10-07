@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { explanetsService } from "@/services/exoplanets";
 import { ExoplanetList } from "./exoplanet";
-import { Cog, Orbit, SidebarIcon } from "lucide-react";
+import { Cog, Orbit, SidebarIcon, Sparkles } from "lucide-react";
 import { useJobContext } from "@/lib/change-job-id";
 
 import {
@@ -12,6 +12,7 @@ import {
   TabsTrigger,
 } from "@/views/components/ui/tabs";
 import { constellationService } from "@/services/constellations";
+import ShimmerButton from "./ui/shimmer-button";
 
 interface SidebarProps {
   onFocus: () => void;
@@ -76,7 +77,7 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
       </button>
     </div>
   ) : (
-    <Tabs defaultValue="account" asChild>
+    <Tabs defaultValue="planets" asChild>
       <div
         className={`animate-slidein200 opacity-0 w-[450px] h-[96vh] absolute inset-0 my-auto ml-4 flex grow overflow-hidden rounded-[2rem] border-y border-b-white/10 border-t-white/15 bg-black/15 shadow-xl shadow-black/30 backdrop-blur-2xl`}
       >
@@ -117,30 +118,23 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
 
             <TabsList className="grid grid-cols-1 gap-4 lg:grid-cols-3 text-sm">
               <TabsTrigger
-                value="account"
-                className="flex flex-col text-start text-gray-200 font-light gap-2 rounded-xl bg-white/10 px-3 py-5 transition hover:bg-white/20 active:scale-95 active:bg-white/10"
-              >
-                <span>Login or register</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="password"
-                className="flex flex-col text-start text-gray-200 font-light gap-2 rounded-xl bg-white/10 px-3 py-5 transition hover:bg-white/20 active:scale-95 active:bg-white/10 disabled:opacity-50"
-                disabled={!exoplanet}
-              >
-                <span>Constelations and score</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="example"
+                value="planets"
                 className="flex flex-col text-start text-gray-200 font-light gap-2 rounded-xl bg-white/10 px-3 py-5 transition hover:bg-white/20 active:scale-95 active:bg-white/10"
               >
                 <span>Planets and Sky</span>
               </TabsTrigger>
+
+              <TabsTrigger
+                value="constellations"
+                className="flex flex-col text-start text-gray-200 font-light gap-2 rounded-xl bg-white/10 px-3 py-5 transition hover:bg-white/20 active:scale-95 active:bg-white/10 disabled:opacity-50"
+                disabled={!exoplanet}
+              >
+                <span>Constellations and score</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="account">
+          <TabsContent value="planets">
             <div className="w-full flex flex-col gap-4 overflow-y-auto pl-5 pb-28 pr-2.5 relative">
               {isLoading ? (
                 <div className="flex justify-start h-full">
@@ -155,9 +149,14 @@ export function Sidebar({ onFocus, isOpen, setIsOpen }: SidebarProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="password"></TabsContent>
-
-          <TabsContent value="example">Example content</TabsContent>
+          <TabsContent value="constellations">
+            <ShimmerButton className="w-full shadow-xl">
+              <div className="w-full flex items-center justify-between text-gray-200 font-light gap-2 rounded-xl bg-white/10 px-6 py-5 transition hover:bg-white/20 active:scale-95 active:bg-white/10 disabled:opacity-50">
+                Create new constellation
+                <Sparkles className="w-5 h-5" />
+              </div>
+            </ShimmerButton>
+          </TabsContent>
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-1/3 bg-gradient-to-t from-current hidden sm:flex"></div>
         </div>

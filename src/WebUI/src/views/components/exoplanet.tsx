@@ -20,12 +20,14 @@ export function ExoplanetList({ exoplanet }: ExoplanetListProps) {
   const parallaxValue = exoplanet.parallax;
   const convertedValue = convertValue(parallaxValue, "mas", unitMeasure);
 
+  console.log(exoplanet);
+
   return (
     <button
       key={exoplanet.name}
       className={`w-full flex flex-col gap-4 rounded-xl ring-1 ring-white/10 bg-white/10 px-3 py-6 text-center text-sm transition hover:bg-white/20 active:scale-95 active:bg-white/10 relative ${
         isSelected
-          ? "bg-blue-500 hover:bg-blue-500/90 text-white"
+          ? "bg-secondary hover:bg-secondary/90 text-white"
           : "bg-white text-black"
       }`}
       onClick={() => {
