@@ -163,17 +163,18 @@ public class PenroseRepository
 
     public async Task<IEnumerable<Constellation>> GetExplanetConstellations(Guid jobId, CancellationToken cancellationToken = default)
     {
-        var container = await GetConstellationContainer(cancellationToken);
+        var constContainer = await GetConstellationContainer(cancellationToken);
 
-        var countQuery = new QueryDefinition("SELECT * FROM gs g WHERE g.JobId = @jobId")
+        var query = new QueryDefinition("SELECT * FROM c WHERE c.JobId = @jobId")
             .WithParameter("@jobId", jobId);
 
-        var constellations = new List<Constellation>();
-        using var resultSetCountIterator = container.GetItemQueryIterator<Constellation>(countQuery);
-        while (resultSetCountIterator.HasMoreResults)
-            constellations.AddRange(await resultSetCountIterator.ReadNextAsync(cancellationToken));
+        var constellations = new HashSet<IEnumerable<Constellation>>();
 
-        return constellations;
+        using var resultSetIterator = constContainer.GetItemQueryIterator<Constellation>(query);
+        while (resultSetIterator.HasMoreResults)
+            constellations.Add(await resultSetIterator.ReadNextAsync(cancellationToken));
+
+        return constellations.SelectMany(gaiajob => gaiajob);
     }
 
     public async IAsyncEnumerable<IEnumerable<GaiaSource>> GetExplanetStars(Guid jobId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
