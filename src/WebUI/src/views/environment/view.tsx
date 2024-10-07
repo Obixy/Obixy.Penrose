@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from "react";
 import { useJobContext } from "@/lib/change-job-id";
 import { OptionsBar, Sidebar } from "../components";
 import { Manual } from "../components/manual";
-import { MessageDisplay } from "../components/message-display";
 
 export function View() {
   const { exoplanet } = useJobContext();
@@ -22,21 +21,6 @@ export function View() {
       setOpen(true);
       localStorage.setItem("@nasaspaceapps:manual", "true");
     }
-  }, []);
-
-  useEffect(() => {
-    function handleMessage(e: any) {
-      if (
-        e.origin !==
-        "https://nsac-obixy-penrose-f8bygpb0bmavcxez.brazilsouth-01.azurewebsites.net"
-      ) {
-        return;
-      }
-
-      console.log(e.data);
-    }
-
-    window.addEventListener("message", handleMessage);
   }, []);
 
   useEffect(() => {
@@ -78,8 +62,6 @@ export function View() {
       ></iframe>
 
       <OptionsBar />
-
-      <MessageDisplay />
 
       <Manual isOpen={open} setIsOpen={setOpen} />
     </div>

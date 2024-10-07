@@ -193,13 +193,8 @@ export function Sidebar({ onFocus, isOpen, setIsOpen, iframe }: SidebarProps) {
               </p>
             ) : (
               <p className="animate-slidein200 opacity-0 text-base text-gray-400 text-center px-4 py-4">
-                Press{"  "}
-                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 border-gray-400 text-[10px] font-medium text-muted-foreground opacity-100">
-                  <span className="text-xs">Ctrl</span> +{" "}
-                  <span className="text-xs">Shift</span> + S
-                </kbd>
-                {"  "}
-                to save the current constellation
+                Select stars to create a constellation, for each star selected
+                you will earn points and the constellation will be saved.
               </p>
             )}
           </TabsContent>
