@@ -29,10 +29,18 @@ public class GameApp : Game
     }
 
     private Guid? _jobId;
+    private Guid? _constellationId;
+    private bool isBuildingConstellation;
     public void UpdateWebInput(IDictionary<string, object> input)
     {
         if (input.TryGetValue("jobId", out var jobId))
             _jobId = Guid.Parse(jobId.ToString()!);
+
+        if (input.TryGetValue("isBuildingConstellation", out var isBuildingConstellationRaw))
+            isBuildingConstellation = bool.Parse(isBuildingConstellationRaw.ToString()!);
+
+        if (input.TryGetValue("constellationId", out var constellationIdRaw))
+            _constellationId = Guid.Parse(constellationIdRaw.ToString()!);
     }
 
     /// <summary>
@@ -121,7 +129,7 @@ public class GameApp : Game
 
         starCamera.Update(Keyboard.GetState(), gameTime);
 
-        constelationManager!.Update(GraphicsDevice, starCamera, keyboardState);
+        constelationManager!.Update(GraphicsDevice, starCamera, keyboardState, null, isBuildingConstellation, _jobId);
 
         if (threeDDebugGrid is null)
             throw new ArgumentNullException(nameof(threeDDebugGrid));

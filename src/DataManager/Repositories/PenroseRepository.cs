@@ -174,7 +174,7 @@ public class PenroseRepository
         while (resultSetIterator.HasMoreResults)
             constellations.Add(await resultSetIterator.ReadNextAsync(cancellationToken));
 
-        return constellations.SelectMany(gaiajob => gaiajob);
+        return constellations.SelectMany(x => x);
     }
 
     public async IAsyncEnumerable<IEnumerable<GaiaSource>> GetExplanetStars(Guid jobId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
