@@ -30,12 +30,14 @@ public class StarSource
     private bool HasBegunLoading = false;
     public bool IsLoading = false;
     public bool HasLoadedTextures = false;
+    public Guid? exoplanetIdLoaded;
 
     public void EnsureStartsQueryTask(Guid exoplanetId)
     {
-        if (!HasBegunLoading)
+        if (!HasBegunLoading && exoplanetId != exoplanetIdLoaded)
         {
             HasBegunLoading = true;
+            
             Task.Run(async () =>
             {
                 IsLoading = true;
@@ -66,6 +68,8 @@ public class StarSource
                         throw;
                     }
                 }
+
+                exoplanetIdLoaded = exoplanetId;
 
                 this.stars = stars.Select(star => new Star(
                     float.Parse(star["source_id"]),
@@ -157,6 +161,7 @@ public class StarSource
             }
 
             HasLoadedTextures = true;
+            HasBegunLoading = false;
         }
     }
 
