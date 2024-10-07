@@ -56,6 +56,12 @@
 		</KniContentReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Content Update="wwwroot\Content\defaultSpriteFont.xnb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
 	<Import Project="..\GameApp.Shared\SharedGameLogic.Shared.projitems" Label="Shared" />
 
 </Project>

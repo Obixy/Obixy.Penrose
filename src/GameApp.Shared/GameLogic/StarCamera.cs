@@ -28,14 +28,14 @@ public class StarCamera
     {
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        if (keyboardState.IsKeyDown(Keys.W))
-            Position += Forward * MoveSpeed * deltaTime;
-        if (keyboardState.IsKeyDown(Keys.S))
-            Position -= Forward * MoveSpeed * deltaTime;
-        if (keyboardState.IsKeyDown(Keys.A))
-            Position -= Right * MoveSpeed * deltaTime;
-        if (keyboardState.IsKeyDown(Keys.D))
-            Position += Right * MoveSpeed * deltaTime;
+        //if (keyboardState.IsKeyDown(Keys.W))
+        //    Rotate(Right, RotationSpeed * deltaTime);
+        //if (keyboardState.IsKeyDown(Keys.S))
+        //    Rotate(Right, -RotationSpeed * deltaTime);
+        //if (keyboardState.IsKeyDown(Keys.A))
+        //    Rotate(Vector3.Up, RotationSpeed * deltaTime);
+        //if (keyboardState.IsKeyDown(Keys.D))
+        //    Rotate(Vector3.Up, -RotationSpeed * deltaTime);
 
         if (keyboardState.IsKeyDown(Keys.Left))
             Rotate(Vector3.Up, RotationSpeed * deltaTime);
